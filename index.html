@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ตัวสร้างตัวละคร D&D 5e</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f1e7;--surface:#fffdf8;--surface2:#f0e9da;--ink:#2b2418;--ink2:#6a5f4b;--line:#ddd2bc;
+  --accent:#9a2b1f;--accent-ink:#fff;--accent-soft:#f6dcd6;--ok:#2f6b3a;--ok-soft:#dcecd9;--warn:#8a5a00;--warn-soft:#f8e9c4;
+  --radius:12px;--shadow:0 1px 2px rgba(60,40,10,.08),0 4px 14px rgba(60,40,10,.06);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#17140f;--surface:#211d16;--surface2:#2a251c;--ink:#f1e9d8;--ink2:#b3a78f;--line:#3d3526;
+  --accent:#e0715f;--accent-ink:#1b0f0c;--accent-soft:#3a1f1a;--ok:#8fd19a;--ok-soft:#1f3322;--warn:#e9bd5a;--warn-soft:#3a2f12;--shadow:none;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Noto Sans Thai','Sarabun',system-ui,sans-serif;font-size:16px;line-height:1.6}
+button,select,input{font:inherit;color:inherit}
+#app{max-width:920px;margin:0 auto;padding:0 14px 90px}
+header.top{padding:18px 2px 8px}
+header.top h1{margin:0;font-size:1.45rem;line-height:1.3;letter-spacing:.2px}
+header.top p{margin:2px 0 0;color:var(--ink2);font-size:.92rem}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 2px 12px;scrollbar-width:thin;position:sticky;top:0;background:var(--bg);z-index:5}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.88rem;cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.chip .dot{width:8px;height:8px;border-radius:50%;background:var(--line)}
+.chip.done .dot{background:var(--ok)} .chip.warn .dot{background:var(--warn)}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.chip.on .dot{background:var(--accent-ink)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 16px 18px;margin:0 0 14px}
+.card h2{margin:0 0 4px;font-size:1.2rem}
+.card h3{margin:16px 0 6px;font-size:1rem}
+.lead{color:var(--ink2);margin:0 0 12px;font-size:.95rem}
+.grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+.opt{border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 11px;text-align:left;cursor:pointer;display:block;width:100%}
+.opt:hover{border-color:var(--accent)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt[disabled]{opacity:.45;cursor:not-allowed}
+.opt b{display:block;font-size:.98rem}.opt small{display:block;color:var(--ink2);font-size:.82rem;line-height:1.4}
+.tag{display:inline-block;font-size:.72rem;padding:0 7px;border-radius:99px;background:var(--surface2);color:var(--ink2);margin-left:4px;vertical-align:1px}
+.tag.easy{background:var(--ok-soft);color:var(--ok)} .tag.hard{background:var(--warn-soft);color:var(--warn)}
+.info{background:var(--surface2);border-radius:10px;padding:10px 12px;margin:12px 0 0;font-size:.92rem}
+.info ul{margin:4px 0 0;padding-left:20px}
+.note{background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:.9rem}
+.good{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:.9rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:10px;padding:8px 16px;cursor:pointer;font-weight:500}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.sm{padding:4px 10px;font-size:.88rem}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));z-index:6}
+nav.bottom .in{max-width:920px;margin:0 auto;display:flex;justify-content:space-between;gap:8px;align-items:center}
+nav.bottom .hint{font-size:.82rem;color:var(--ink2);flex:1;text-align:center}
+input[type=text],select{border:1.5px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;min-height:38px;max-width:100%}
+input[type=text]{width:100%;max-width:420px}
+label.f{display:block;font-size:.9rem;color:var(--ink2);margin:10px 0 3px}
+.ab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.ab{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--surface)}
+.ab .h{display:flex;justify-content:space-between;align-items:baseline}.ab .h b{font-size:1.05rem}.ab .h span{font-size:.78rem;color:var(--ink2)}
+.ab .v{font-size:1.5rem;font-weight:700;line-height:1.2}.ab .m{color:var(--ink2);font-size:.82rem}
+.ab select{width:100%;margin-top:4px}
+.ab.rec{border-color:var(--accent)}
+.pm{display:flex;gap:6px;align-items:center;margin-top:4px}.pm button{width:34px;height:34px;border-radius:8px;border:1.5px solid var(--line);background:var(--surface2);cursor:pointer;font-size:1.1rem}
+.skills{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.sk{border:1.5px solid var(--line);border-radius:9px;padding:6px 10px;background:var(--surface);cursor:pointer;text-align:left;display:flex;justify-content:space-between;gap:6px;align-items:center}
+.sk.sel{border-color:var(--accent);background:var(--accent-soft)} .sk.fix{background:var(--surface2);cursor:default}
+.sk[disabled]{opacity:.5;cursor:not-allowed}
+.sk small{color:var(--ink2);font-size:.75rem}
+.eqopt{display:flex;flex-direction:column;gap:6px}
+.eq{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}
+.eq .t{font-weight:500;margin-bottom:6px}
+.radio{display:flex;gap:8px;align-items:flex-start;border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;cursor:pointer;margin-bottom:5px;background:var(--surface);text-align:left;width:100%}
+.radio.sel{border-color:var(--accent);background:var(--accent-soft)}
+.radio[disabled]{opacity:.45;cursor:not-allowed}
+.radio .o{width:16px;height:16px;border-radius:50%;border:2px solid var(--ink2);flex:0 0 auto;margin-top:5px}
+.radio.sel .o{border-color:var(--accent);background:radial-gradient(var(--accent) 45%,transparent 50%)}
+/* ---------- result ---------- */
+.sheet h2{font-size:1.1rem;margin:0}
+.sec{margin:14px 0 4px;font-size:.78rem;letter-spacing:.06em;color:var(--ink2);text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:3px}
+.box{border:1.5px solid var(--ink);border-radius:8px;padding:6px 10px;background:var(--surface);position:relative}
+.box .l{font-size:.74rem;color:var(--ink2);line-height:1.3}
+.box .w{font-size:1.2rem;font-weight:700;line-height:1.3;word-break:break-word}
+.box .why{font-size:.75rem;color:var(--ink2);margin-top:2px;line-height:1.35}
+.box.chk{cursor:pointer}.box.done{background:var(--ok-soft);border-color:var(--ok)}
+.box.done::after{content:'✓';position:absolute;right:8px;top:4px;color:var(--ok);font-weight:700}
+.g2{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.g6{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(125px,1fr))}
+.abbox{text-align:center}.abbox .w{font-size:1.9rem}.abbox .small{font-size:.9rem;color:var(--ink2)}
+.abbox .nm{font-size:.82rem;font-weight:500}
+table.t{width:100%;border-collapse:collapse;font-size:.92rem}table.t th,table.t td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+table.t th{background:var(--surface2);font-weight:500;font-size:.8rem}
+.skl{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:4px 10px}
+.sr{display:flex;justify-content:space-between;gap:6px;border-bottom:1px dotted var(--line);padding:3px 2px;font-size:.92rem}
+.sr.p{font-weight:700;background:var(--accent-soft);border-radius:6px;padding:3px 6px}
+.sr .c{font-variant-numeric:tabular-nums}
+.feat{font-size:.9rem;margin:2px 0 6px}.feat ul{margin:2px 0;padding-left:18px}
+.miss{border:1.5px dashed var(--warn);background:var(--warn-soft);color:var(--warn);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:.92rem}
+.miss ul{margin:4px 0 0;padding-left:20px}.miss a{color:inherit;cursor:pointer;text-decoration:underline}
+.toggle{display:flex;align-items:center;gap:6px;font-size:.88rem;color:var(--ink2)}
+.pre{white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:10px;font-size:.85rem;max-height:300px;overflow:auto}
+.hide-why .why{display:none}
+@media (max-width:520px){header.top h1{font-size:1.25rem}.card{padding:14px 12px}.btn{padding:8px 12px}}
+</style></head><body><div id="app"></div>
+<script>
+// ===== DATA (D&D 5e 2014 PHB, level 1) =====
+const AB = ['STR','DEX','CON','INT','WIS','CHA'];
+const AB_TH = {STR:'พละกำลัง',DEX:'ความคล่องแคล่ว',CON:'ความทนทาน',INT:'สติปัญญา',WIS:'ปัญญา',CHA:'เสน่ห์'};
+const AB_HINT = {STR:'ออกแรง ยก ผลัก ตีระยะประชิด',DEX:'ความไว การทรงตัว ยิงธนู หลบหลีก',CON:'ความอึด พลังชีวิต',INT:'ความจำ ตรรกะ เวทของ Wizard',WIS:'การรับรู้ สัญชาตญาณ เวทของ Cleric/Druid',CHA:'บุคลิก การโน้มน้าว เวทของ Bard/Sorcerer/Warlock'};
+
+// id: [ไทย, English, ability]  (เรียงตามชีทภาษาไทย)
+const SK = {
+  acrobatics:['กายกรรม','Acrobatics','DEX'], animal:['ควบคุมสัตว์','Animal Handling','WIS'],
+  arcana:['เวทมนตร์','Arcana','INT'], athletics:['กรีฑา','Athletics','STR'],
+  deception:['หลอกลวง','Deception','CHA'], history:['ประวัติศาสตร์','History','INT'],
+  insight:['หยั่งรู้ใจคน','Insight','WIS'], intimidation:['ข่มขู่','Intimidation','CHA'],
+  investigation:['สืบสวน','Investigation','INT'], medicine:['การแพทย์','Medicine','WIS'],
+  nature:['ธรรมชาติ','Nature','INT'], perception:['การรับรู้','Perception','WIS'],
+  performance:['การแสดง','Performance','CHA'], persuasion:['โน้มน้าว','Persuasion','CHA'],
+  religion:['ศาสนา','Religion','INT'], sleight:['ฝีมือล้วงกระเป๋า','Sleight of Hand','DEX'],
+  stealth:['ย่องเงียบ','Stealth','DEX'], survival:['เอาชีวิตรอด','Survival','WIS']
+};
+const SK_IDS = Object.keys(SK);
+
+// ----- อาวุธ: id:[en, th, cat, melee/ranged, dice, dmgType, flags]
+// flags: f finesse, t thrown, v versatile(dice), 2 two-handed, h heavy, l light, r reach, a ammo, d loading
+const DT = {s:'ฟัน',p:'แทง',b:'กระแทก'};
+const W = {
+  club:['Club','ไม้กระบอง','simple','m','1d4','b','l'],
+  dagger:['Dagger','มีดสั้น','simple','m','1d4','p','ftl'],
+  greatclub:['Greatclub','กระบองใหญ่','simple','m','1d8','b','2'],
+  handaxe:['Handaxe','ขวานมือ','simple','m','1d6','s','tl'],
+  javelin:['Javelin','หอกซัด','simple','m','1d6','p','t'],
+  lighthammer:['Light hammer','ค้อนเบา','simple','m','1d4','b','tl'],
+  mace:['Mace','กระบองหนาม (เมซ)','simple','m','1d6','b',''],
+  quarterstaff:['Quarterstaff','ไม้เท้ายาว','simple','m','1d6','b','v1d8'],
+  sickle:['Sickle','เคียว','simple','m','1d4','s','l'],
+  spear:['Spear','หอก','simple','m','1d6','p','tv1d8'],
+  lightcrossbow:['Light crossbow','หน้าไม้เบา','simple','r','1d8','p','ad2'],
+  dart:['Dart','ลูกดอก','simple','r','1d4','p','ft'],
+  shortbow:['Shortbow','ธนูสั้น','simple','r','1d6','p','a'],
+  sling:['Sling','หนังสติ๊ก','simple','r','1d4','b','a'],
+  battleaxe:['Battleaxe','ขวานรบ','martial','m','1d8','s','v1d10'],
+  flail:['Flail','ลูกตุ้มโซ่','martial','m','1d8','b',''],
+  glaive:['Glaive','ง้าว','martial','m','1d10','s','2hr'],
+  greataxe:['Greataxe','ขวานใหญ่','martial','m','1d12','s','2h'],
+  greatsword:['Greatsword','ดาบใหญ่สองมือ','martial','m','2d6','s','2h'],
+  halberd:['Halberd','ทวนขวาน','martial','m','1d10','s','2hr'],
+  longsword:['Longsword','ดาบยาว','martial','m','1d8','s','v1d10'],
+  maul:['Maul','ค้อนยักษ์','martial','m','2d6','b','2h'],
+  morningstar:['Morningstar','ลูกตุ้มหนาม','martial','m','1d8','p',''],
+  pike:['Pike','หอกยาว','martial','m','1d10','p','2hr'],
+  rapier:['Rapier','ดาบเรเพียร์','martial','m','1d8','p','f'],
+  scimitar:['Scimitar','ดาบโค้ง','martial','m','1d6','s','fl'],
+  shortsword:['Shortsword','ดาบสั้น','martial','m','1d6','p','fl'],
+  trident:['Trident','ตรีศูล','martial','m','1d6','p','tv1d8'],
+  warpick:['War pick','ขวานจิก','martial','m','1d8','p',''],
+  warhammer:['Warhammer','ค้อนศึก','martial','m','1d8','b','v1d10'],
+  whip:['Whip','แส้','martial','m','1d4','s','fr'],
+  handcrossbow:['Hand crossbow','หน้าไม้มือ','martial','r','1d6','p','adl'],
+  heavycrossbow:['Heavy crossbow','หน้าไม้หนัก','martial','r','1d10','p','ad2h'],
+  longbow:['Longbow','ธนูยาว','martial','r','1d8','p','a2h']
+};
+// "2" ในธง = two-handed ; ตัวเลข "d2" ใน lightcrossbow แปลว่า loading+two-handed — แยกด้วยฟังก์ชัน wf()
+function wf(id){
+  const f = W[id][6]; const o = {f:0,t:0,v:null,two:0,h:0,l:0,r:0,a:0,ld:0};
+  const m = f.match(/v(\d+d\d+)/); if(m){o.v=m[1];}
+  const g = f.replace(/v\d+d\d+/,'');
+  o.f=g.includes('f'); o.t=g.includes('t'); o.two=g.includes('2'); o.h=g.includes('h');
+  o.l=g.includes('l'); o.r=g.includes('r'); o.a=g.includes('a'); o.ld=g.includes('d');
+  return o;
+}
+const SIMPLE_MELEE = Object.keys(W).filter(k=>W[k][2]==='simple'&&W[k][3]==='m');
+const SIMPLE_ALL = Object.keys(W).filter(k=>W[k][2]==='simple');
+const MARTIAL_MELEE = Object.keys(W).filter(k=>W[k][2]==='martial'&&W[k][3]==='m');
+const MARTIAL_ALL = Object.keys(W).filter(k=>W[k][2]==='martial');
+const PICKS = {
+  simple:{label:'อาวุธ Simple อะไรก็ได้',list:SIMPLE_ALL},
+  simplemelee:{label:'อาวุธ Simple ระยะประชิดอะไรก็ได้',list:SIMPLE_MELEE},
+  martial:{label:'อาวุธ Martial อะไรก็ได้',list:MARTIAL_ALL},
+  martialmelee:{label:'อาวุธ Martial ระยะประชิดอะไรก็ได้',list:MARTIAL_MELEE}
+};
+
+// ----- เกราะ: id:[en, th, type, baseAC, dexCap(null=ไม่จำกัด,0=ไม่บวก), strReq, stealthDis]
+const ARMOR = {
+  padded:['Padded','เกราะบุนวม','light',11,null,0,1],
+  leather:['Leather armor','เกราะหนัง','light',11,null,0,0],
+  studded:['Studded leather','เกราะหนังหมุด','light',12,null,0,0],
+  hide:['Hide','เกราะหนังสัตว์','medium',12,2,0,0],
+  chainshirt:['Chain shirt','เสื้อเกราะโซ่','medium',13,2,0,0],
+  scale:['Scale mail','เกราะเกล็ด','medium',14,2,0,1],
+  breastplate:['Breastplate','เกราะอก','medium',14,2,0,0],
+  halfplate:['Half plate','เกราะครึ่งตัว','medium',15,2,0,1],
+  ring:['Ring mail','เกราะห่วง','heavy',14,0,0,1],
+  chain:['Chain mail','เกราะโซ่','heavy',16,0,13,1],
+  splint:['Splint','เกราะแผ่นเหล็กซี่','heavy',17,0,15,1],
+  plate:['Plate','เกราะเหล็กเต็มตัว','heavy',18,0,15,1],
+  shield:['Shield','โล่','shield',2,0,0,0]
+};
+
+// ----- แพ็กอุปกรณ์
+const PACKS = {
+  burglar:['Burglar\'s Pack','แพ็กหัวขโมย','กระเป๋าเป้, ลูกปืนเหล็ก 1,000 เม็ด, เชือกเล็ก 10 ฟุต, กระดิ่ง, เทียน 5 เล่ม, ชะแลง, ค้อน, หมุดปีน 10 อัน, ตะเกียงมีฝา, น้ำมัน 2 ขวด, เสบียง 5 วัน, กล่องจุดไฟ, ถุงน้ำ, เชือกป่าน 50 ฟุต'],
+  dungeoneer:['Dungeoneer\'s Pack','แพ็กนักสำรวจดันเจี้ยน','กระเป๋าเป้, ชะแลง, ค้อน, หมุดปีน 10 อัน, คบเพลิง 10 อัน, กล่องจุดไฟ, เสบียง 10 วัน, ถุงน้ำ, เชือกป่าน 50 ฟุต'],
+  explorer:['Explorer\'s Pack','แพ็กนักผจญภัย','กระเป๋าเป้, ผ้านอน, ชุดเครื่องครัวพกพา, กล่องจุดไฟ, คบเพลิง 10 อัน, เสบียง 10 วัน, ถุงน้ำ, เชือกป่าน 50 ฟุต'],
+  priest:['Priest\'s Pack','แพ็กนักบวช','กระเป๋าเป้, ผ้าห่ม, เทียน 10 เล่ม, กล่องจุดไฟ, กล่องรับบริจาค, ธูป 2 ก้อน, กระถางธูป, ชุดนักบวช, เสบียง 2 วัน, ถุงน้ำ'],
+  scholar:['Scholar\'s Pack','แพ็กนักวิชาการ','กระเป๋าเป้, หนังสือความรู้, หมึก 1 ขวด, ปากกา, กระดาษหนัง 10 แผ่น, ถุงทรายเล็ก, มีดเล็ก'],
+  diplomat:['Diplomat\'s Pack','แพ็กนักการทูต','หีบ, กล่องใส่แผนที่/ม้วนกระดาษ 2 อัน, เสื้อผ้าดี, หมึก 1 ขวด, ปากกา, ตะเกียง, น้ำมัน 2 ขวด, กระดาษ 5 แผ่น, น้ำหอม 1 ขวด, ขี้ผึ้งปิดผนึก, สบู่'],
+  entertainer:['Entertainer\'s Pack','แพ็กนักแสดง','กระเป๋าเป้, ผ้านอน, เครื่องแต่งกายแสดง 2 ชุด, เทียน 5 เล่ม, เสบียง 5 วัน, ถุงน้ำ, ชุดปลอมตัว']
+};
+
+// ----- รายการเครื่องมือ
+const TOOLS = {
+  gaming:{label:'ชุดเกม (Gaming set)',list:['ลูกเต๋า (Dice set)','หมากรุกมังกร (Dragonchess)','ไพ่ (Playing cards)','Three-Dragon Ante']},
+  instrument:{label:'เครื่องดนตรี',list:['Bagpipes','Drum','Dulcimer','Flute','Lute','Lyre','Horn','Pan flute','Shawm','Viol']},
+  artisan:{label:'เครื่องมือช่าง (Artisan\'s tools)',list:['Alchemist\'s supplies','Brewer\'s supplies','Calligrapher\'s supplies','Carpenter\'s tools','Cartographer\'s tools','Cobbler\'s tools','Cook\'s utensils','Glassblower\'s tools','Jeweler\'s tools','Leatherworker\'s tools','Mason\'s tools','Painter\'s supplies','Potter\'s tools','Smith\'s tools','Tinker\'s tools','Weaver\'s tools','Woodcarver\'s tools']},
+  dwarf:{label:'เครื่องมือช่างของดวอร์ฟ',list:['Smith\'s tools','Brewer\'s supplies','Mason\'s tools']},
+  artisanOrInstr:{label:'เครื่องมือช่าง หรือ เครื่องดนตรี',list:null}
+};
+TOOLS.artisanOrInstr.list = TOOLS.artisan.list.concat(TOOLS.instrument.list);
+
+// ----- ภาษา
+const LANGS = ['Common','Dwarvish','Elvish','Giant','Gnomish','Goblin','Halfling','Orc','Abyssal','Celestial','Draconic','Deep Speech','Infernal','Primordial','Sylvan','Undercommon'];
+const LANG_TH = {Common:'ภาษากลาง',Dwarvish:'ดวอร์ฟ',Elvish:'เอลฟ์',Giant:'ยักษ์',Gnomish:'นอม',Goblin:'ก็อบลิน',Halfling:'ฮาล์ฟลิง',Orc:'ออร์ก',Abyssal:'อบิสซัล',Celestial:'เซเลสเชียล',Draconic:'มังกร',['Deep Speech']:'ดีพสปีช',Infernal:'อินเฟอร์นัล',Primordial:'ไพรมอร์เดียล',Sylvan:'ซิลวาน',Undercommon:'อันเดอร์คอมมอน'};
+
+// ----- ศีลธรรม
+const ALIGN = ['ถูกต้อง-เป็นระเบียบ (LG)','ถูกต้อง-เป็นกลาง (NG)','ถูกต้อง-อิสระ (CG)','เป็นกลาง-เป็นระเบียบ (LN)','เป็นกลางแท้ (N)','เป็นกลาง-อิสระ (CN)','ชั่ว-เป็นระเบียบ (LE)','ชั่ว-เป็นกลาง (NE)','ชั่ว-อิสระ (CE)'];
+
+// ----- เผ่าพันธุ์
+// asi: โบนัสค่าพลัง; spd: ความเร็ว; lang: ภาษาติดตัว; extraLang: ภาษาเลือกเพิ่ม; skills: ทักษะติดตัว; wp: อาวุธที่ชำนาญ; armorP: เกราะที่ชำนาญเพิ่ม; hp: HP เพิ่มต่อเลเวล
+const RACES = {
+  human:{n:'มนุษย์',en:'Human',desc:'ปรับตัวเก่ง +1 ทุกค่า ภาษาเพิ่ม 1',asi:{STR:1,DEX:1,CON:1,INT:1,WIS:1,CHA:1},spd:30,lang:['Common'],extraLang:1,
+    feats:['ภาษาเพิ่มอีก 1 ภาษาที่เลือกเอง']},
+  dwarf:{n:'ดวอร์ฟ',en:'Dwarf',desc:'อึด ทน ถึกมาก เร็ว 25 ฟุตแต่ไม่ช้าลงเพราะเกราะหนัก',asi:{CON:2},spd:25,lang:['Common','Dwarvish'],toolPick:'dwarf',
+    wp:['battleaxe','handaxe','lighthammer','warhammer'],
+    feats:['Darkvision 60 ฟุต (มองในที่มืดเป็นขาว-ดำ)','Dwarven Resilience: ได้เปรียบทอยป้องกันพิษ และต้านทานดาเมจพิษ','Stonecunning: ได้ x2 โบนัสชำนาญเมื่อทอยประวัติศาสตร์เรื่องงานหิน','ความเร็วไม่ลดเมื่อใส่เกราะหนัก'],
+    subs:{hill:{n:'Hill Dwarf (ดวอร์ฟเขาเตี้ย)',asi:{WIS:1},hp:1,feats:['Dwarven Toughness: HP สูงสุด +1 ทุกเลเวล']},
+          mountain:{n:'Mountain Dwarf (ดวอร์ฟภูเขา)',asi:{STR:2},armorP:['light','medium'],feats:['Dwarven Armor Training: ชำนาญเกราะเบาและเกราะกลาง']}}},
+  elf:{n:'เอลฟ์',en:'Elf',desc:'ว่องไว สัมผัสเฉียบ ไม่ต้องนอน (Trance 4 ชม.)',asi:{DEX:2},spd:30,lang:['Common','Elvish'],skills:['perception'],
+    feats:['Darkvision 60 ฟุต','Keen Senses: ชำนาญการรับรู้ (Perception)','Fey Ancestry: ได้เปรียบทอยป้องกันถูกควบคุมจิต และเวทมนตร์ไม่ทำให้หลับ','Trance: พัก 4 ชม. แทนนอน 8 ชม.'],
+    subs:{high:{n:'High Elf (เอลฟ์สูง)',asi:{INT:1},wp:['longsword','shortsword','shortbow','longbow'],extraLang:1,feats:['Elf Weapon Training: ชำนาญดาบยาว ดาบสั้น ธนูสั้น ธนูยาว','Cantrip: เลือกคาถาพื้นฐาน (cantrip) 1 อย่างจากลิสต์ Wizard (ใช้ INT)']},
+          wood:{n:'Wood Elf (เอลฟ์ไพร)',asi:{WIS:1},spd:35,wp:['longsword','shortsword','shortbow','longbow'],feats:['ความเร็ว 35 ฟุต','Elf Weapon Training: ชำนาญดาบยาว ดาบสั้น ธนูสั้น ธนูยาว','Mask of the Wild: ซ่อนตัวในที่ธรรมชาติบางๆ (ฝน หิมะ หมอก ใบไม้) ได้แม้มีคนมองอยู่']},
+          drow:{n:'Dark Elf / Drow (เอลฟ์ดำ)',asi:{CHA:1},wp:['rapier','shortsword','handcrossbow'],feats:['Superior Darkvision 120 ฟุต','Sunlight Sensitivity: เสียเปรียบทอยโจมตี/การรับรู้ที่พึ่งสายตาเมื่ออยู่กลางแสงแดดจ้า','Drow Magic: ได้ Dancing Lights (cantrip, ใช้ CHA)','Drow Weapon Training: ชำนาญเรเพียร์ ดาบสั้น หน้าไม้มือ']}}},
+  halfling:{n:'ฮาล์ฟลิง',en:'Halfling',desc:'ตัวเล็ก โชคดี กล้าหาญ',asi:{DEX:2},spd:25,lang:['Common','Halfling'],
+    feats:['Lucky: ทอย d20 ได้ 1 ให้ทอยใหม่และต้องใช้ค่าใหม่','Brave: ได้เปรียบทอยป้องกันความกลัว','Halfling Nimbleness: เดินผ่านช่องของสิ่งมีชีวิตที่ใหญ่กว่าได้'],
+    subs:{lightfoot:{n:'Lightfoot (เท้าเบา)',asi:{CHA:1},feats:['Naturally Stealthy: ซ่อนตัวหลังสิ่งมีชีวิตที่ใหญ่กว่าได้']},
+          stout:{n:'Stout (แข็งแรง)',asi:{CON:1},feats:['Stout Resilience: ได้เปรียบทอยป้องกันพิษ และต้านทานดาเมจพิษ']}}},
+  dragonborn:{n:'ดราก้อนบอร์น',en:'Dragonborn',desc:'มนุษย์มังกร พ่นลมหายใจธาตุได้',asi:{STR:2,CHA:1},spd:30,lang:['Common','Draconic'],dragon:true,
+    feats:[]},
+  gnome:{n:'นอม',en:'Gnome',desc:'ตัวเล็ก ฉลาด ขี้สงสัย',asi:{INT:2},spd:25,lang:['Common','Gnomish'],
+    feats:['Darkvision 60 ฟุต','Gnome Cunning: ได้เปรียบทอยป้องกัน INT/WIS/CHA ที่มาจากเวทมนตร์'],
+    subs:{forest:{n:'Forest Gnome (นอมป่า)',asi:{DEX:1},feats:['Natural Illusionist: ได้ Minor Illusion (cantrip, ใช้ INT)','Speak with Small Beasts: คุยกับสัตว์ตัวเล็กได้']},
+          rock:{n:'Rock Gnome (นอมหิน)',asi:{CON:1},feats:['Artificer\'s Lore: ได้ x2 โบนัสชำนาญเมื่อทอยประวัติศาสตร์เรื่องของวิเศษ/เครื่องกล/เทคโนโลยี','Tinker: ประดิษฐ์ของเล่นกลไกเล็กๆ ได้']}}},
+  halfelf:{n:'ฮาล์ฟเอลฟ์',en:'Half-Elf',desc:'เสน่ห์สูง ยืดหยุ่น ได้เลือกทักษะและค่าพลังเอง',asi:{CHA:2},halfElfPlus:2,spd:30,lang:['Common','Elvish'],extraLang:1,skillPick:2,
+    feats:['Darkvision 60 ฟุต','Fey Ancestry: ได้เปรียบทอยป้องกันถูกควบคุมจิต และเวทมนตร์ไม่ทำให้หลับ','Skill Versatility: ชำนาญทักษะเพิ่ม 2 อย่างที่เลือกเอง','ค่าพลังเพิ่ม +1 ให้อีก 2 ค่า (ไม่ใช่ CHA) เลือกเอง']},
+  halforc:{n:'ฮาล์ฟออร์ก',en:'Half-Orc',desc:'แข็งแรง อึด ดุดัน',asi:{STR:2,CON:1},spd:30,lang:['Common','Orc'],skills:['intimidation'],
+    feats:['Darkvision 60 ฟุต','Menacing: ชำนาญการข่มขู่ (Intimidation)','Relentless Endurance: HP ลดเหลือ 0 ให้ไปอยู่ที่ 1 แทน (1 ครั้ง/พักยาว)','Savage Attacks: คริติคอลฮิตด้วยอาวุธระยะประชิด ทอยลูกเต๋าดาเมจเพิ่มอีก 1 ลูก']},
+  tiefling:{n:'เทียฟลิง',en:'Tiefling',desc:'สายเลือดปีศาจ ต้านไฟ ใช้เวทมนตร์ติดตัว',asi:{INT:1,CHA:2},spd:30,lang:['Common','Infernal'],
+    feats:['Darkvision 60 ฟุต','Hellish Resistance: ต้านทานดาเมจไฟ','Infernal Legacy: ได้ Thaumaturgy (cantrip, ใช้ CHA)']}
+};
+
+// ----- Dragonborn ancestry
+const DRAGONS = {
+  black:['Black (ดำ)','กรด (acid)','เส้นตรง 5x30 ฟุต','DEX'], blue:['Blue (น้ำเงิน)','สายฟ้า (lightning)','เส้นตรง 5x30 ฟุต','DEX'],
+  brass:['Brass (ทองเหลือง)','ไฟ (fire)','เส้นตรง 5x30 ฟุต','DEX'], bronze:['Bronze (สัมฤทธิ์)','สายฟ้า (lightning)','เส้นตรง 5x30 ฟุต','DEX'],
+  copper:['Copper (ทองแดง)','กรด (acid)','เส้นตรง 5x30 ฟุต','DEX'], gold:['Gold (ทอง)','ไฟ (fire)','กรวย 15 ฟุต','DEX'],
+  green:['Green (เขียว)','พิษ (poison)','กรวย 15 ฟุต','CON'], red:['Red (แดง)','ไฟ (fire)','กรวย 15 ฟุต','DEX'],
+  silver:['Silver (เงิน)','เย็น (cold)','กรวย 15 ฟุต','CON'], white:['White (ขาว)','เย็น (cold)','กรวย 15 ฟุต','CON']
+};
+// ===== CLASSES / BACKGROUNDS =====
+// อุปกรณ์: กลุ่มตัวเลือก g = [ตัวเลือก A, ตัวเลือก B,...] ; แต่ละตัวเลือก = รายการไอเท็ม
+// ไอเท็ม: {w:id,q} อาวุธ | {a:id} เกราะ/โล่ | {pick:key,q} เลือกอาวุธ | {pack:id} | {t:'ข้อความ',q}
+const w=(id,q)=>({w:id,q:q||1}), ar=(id)=>({a:id}), pk=(key,q)=>({pick:key,q:q||1}), pack=(id)=>({pack:id}), tx=(t,q)=>({t,q:q||1});
+
+const CLASSES = {
+  barbarian:{n:'บาร์เบเรียน',en:'Barbarian',hd:12,saves:['STR','CON'],nSk:2,skills:['animal','athletics','intimidation','nature','perception','survival'],
+    armorP:['light','medium','shield'],wp:['simple','martial'],order:['STR','CON','DEX','WIS','CHA','INT'],
+    desc:'นักรบสายบุกด้วยพลังโกรธ อึดมาก',diff:'ง่าย',
+    feats:['Rage: เข้าสู่ภาวะโกรธ (โบนัสแอคชัน) ได้ 2 ครั้ง/พักยาว ได้เปรียบทอยเช็ค/ป้องกัน STR, ดาเมจ +2 ด้วย STR, ต้านทานดาเมจกระแทก/ฟัน/แทง','Unarmored Defense: ไม่ใส่เกราะ AC = 10 + DEX + CON (ใช้โล่ได้)'],
+    equip:[{t:'อาวุธหลัก',o:[[w('greataxe')],[pk('martialmelee')]]},{t:'อาวุธรอง',o:[[w('handaxe',2)],[pk('simple')]]},{t:'อุปกรณ์ติดตัว',fixed:[pack('explorer'),w('javelin',4)]}]},
+  bard:{n:'บาร์ด',en:'Bard',hd:8,saves:['DEX','CHA'],nSk:3,skills:null,armorP:['light'],wp:['simple','handcrossbow','longsword','rapier','shortsword'],
+    order:['CHA','DEX','CON','WIS','INT','STR'],spell:{ab:'CHA',cantrips:2,known:4,slots:2,kind:'known',list:'Bard'},tools:[['instrument',3]],
+    desc:'นักร้อง นักเล่า เวทมนตร์ทางเสน่ห์ ช่วยทีมได้ทุกด้าน',diff:'ปานกลาง',
+    feats:['Spellcasting (ใช้ CHA)','Bardic Inspiration: โบนัสแอคชัน ให้พันธมิตรในระยะ 60 ฟุตบวก d6 ลงทอย 1 ครั้ง ใช้ได้ = CHA mod ครั้ง/พักยาว (ขั้นต่ำ 1)'],
+    equip:[{t:'อาวุธหลัก',o:[[w('rapier')],[w('longsword')],[pk('simple')]]},{t:'แพ็ก',o:[[pack('diplomat')],[pack('entertainer')]]},{t:'เครื่องดนตรี',o:[[tx('Lute (พิณลูท)')],[tx('เครื่องดนตรีอื่น 1 ชิ้น')]]},{t:'อุปกรณ์ติดตัว',fixed:[ar('leather'),w('dagger')]}]},
+  cleric:{n:'เคลอริก',en:'Cleric',hd:8,saves:['WIS','CHA'],nSk:2,skills:['history','insight','medicine','persuasion','religion'],armorP:['light','medium','shield'],wp:['simple'],
+    order:['WIS','CON','STR','CHA','DEX','INT'],spell:{ab:'WIS',cantrips:3,kind:'prepared',slots:2,list:'Cleric'},domain:true,
+    desc:'นักบวชผู้ได้พลังจากเทพ รักษา ต่อสู้ได้ ทนทาน',diff:'ปานกลาง',
+    feats:['Spellcasting (ใช้ WIS) เตรียมคาถาได้ = WIS mod + เลเวล (ขั้นต่ำ 1)','Divine Domain: เลือกสายเทพ 1 สายที่ระดับ 1'],
+    equip:[{t:'อาวุธหลัก',o:[[w('mace')],[w('warhammer')]],note:'Warhammer ต้องชำนาญอาวุธ Martial (สาย Tempest/War)'},{t:'เกราะ',o:[[ar('scale')],[ar('leather')],[ar('chain')]],note:'Chain mail ต้องชำนาญเกราะหนัก (สาย Life/Nature/Tempest/War)'},{t:'อาวุธรอง',o:[[w('lightcrossbow'),tx('ลูกหน้าไม้ (bolts)',20)],[pk('simple')]]},{t:'แพ็ก',o:[[pack('priest')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[ar('shield'),tx('Holy symbol (สัญลักษณ์ศักดิ์สิทธิ์)')]}]},
+  druid:{n:'ดรูอิด',en:'Druid',hd:8,saves:['INT','WIS'],nSk:2,skills:['arcana','animal','insight','medicine','nature','perception','religion','survival'],armorP:['light','medium','shield'],
+    wp:['club','dagger','dart','javelin','mace','quarterstaff','scimitar','sickle','sling','spear'],order:['WIS','CON','DEX','INT','CHA','STR'],
+    spell:{ab:'WIS',cantrips:2,kind:'prepared',slots:2,list:'Druid'},fixedTools:['Herbalism kit'],fixedLang:['Druidic'],
+    desc:'ผู้พิทักษ์ธรรมชาติ ใช้เวทจากธรรมชาติ (เกราะห้ามเป็นโลหะ)',diff:'ปานกลาง-ยาก',
+    feats:['Druidic: ภาษาลับของดรูอิด','Spellcasting (ใช้ WIS) เตรียมคาถาได้ = WIS mod + เลเวล','⚠️ ดรูอิดไม่สวมเกราะ/โล่ที่เป็นโลหะ'],
+    equip:[{t:'โล่/อาวุธ',o:[[{a:'shield',label:'Wooden shield (โล่ไม้)'}],[pk('simple')]],note:'โล่ไม้ให้ AC +2 เท่าโล่ปกติ'},{t:'อาวุธ',o:[[w('scimitar')],[pk('simplemelee')]]},{t:'อุปกรณ์ติดตัว',fixed:[ar('leather'),pack('explorer'),tx('Druidic focus (เช่น กิ่งไม้มิสเซิลโท)')]}]},
+  fighter:{n:'ไฟเตอร์',en:'Fighter',hd:10,saves:['STR','CON'],nSk:2,skills:['acrobatics','animal','athletics','history','insight','intimidation','perception','survival'],
+    armorP:['light','medium','heavy','shield'],wp:['simple','martial'],order:['STR','CON','DEX','WIS','CHA','INT'],style:true,
+    desc:'นักรบสายอาวุธ เรียนง่าย เล่นง่ายที่สุด',diff:'ง่าย',
+    feats:['Fighting Style: เลือกสไตล์การรบ 1 แบบ','Second Wind: โบนัสแอคชัน ฟื้น HP 1d10 + เลเวล (1 ครั้ง/พักสั้นหรือยาว)'],
+    equip:[{t:'เกราะ/ธนู',o:[[ar('chain')],[ar('leather'),w('longbow'),tx('ลูกธนู (arrows)',20)]]},{t:'อาวุธ',o:[[pk('martial'),ar('shield')],[pk('martial',2)]]},{t:'อาวุธระยะไกล/ขวาน',o:[[w('lightcrossbow'),tx('ลูกหน้าไม้ (bolts)',20)],[w('handaxe',2)]]},{t:'แพ็ก',o:[[pack('dungeoneer')],[pack('explorer')]]}]},
+  monk:{n:'มังก์',en:'Monk',hd:8,saves:['STR','DEX'],nSk:2,skills:['acrobatics','athletics','history','insight','religion','stealth'],armorP:[],wp:['simple','shortsword'],
+    order:['DEX','WIS','CON','STR','INT','CHA'],tools:[['artisanOrInstr',1]],monkWeapons:true,
+    desc:'นักสู้มือเปล่า ว่องไว ไม่ใส่เกราะ',diff:'ปานกลาง-ยาก',
+    feats:['Unarmored Defense: ไม่ใส่เกราะและไม่ถือโล่ AC = 10 + DEX + WIS','Martial Arts: ต่อยมือเปล่า/อาวุธ Monk ใช้ DEX ได้, ดาเมจมือเปล่า d4, โจมตีมือเปล่าเพิ่มเป็นโบนัสแอคชัน'],
+    equip:[{t:'อาวุธ',o:[[w('shortsword')],[pk('simple')]]},{t:'แพ็ก',o:[[pack('dungeoneer')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[w('dart',10)]}]},
+  paladin:{n:'พาลาดิน',en:'Paladin',hd:10,saves:['WIS','CHA'],nSk:2,skills:['athletics','insight','intimidation','medicine','persuasion','religion'],
+    armorP:['light','medium','heavy','shield'],wp:['simple','martial'],order:['STR','CHA','CON','WIS','DEX','INT'],
+    desc:'อัศวินศักดิ์สิทธิ์ ตีแรง รักษาได้ ใส่เกราะหนัก (เวทเริ่มที่เลเวล 2)',diff:'ปานกลาง',
+    feats:['Divine Sense: รับรู้ปีศาจ/ผู้ตาย/เทวดา = 1 + CHA mod ครั้ง/พักยาว','Lay on Hands: กองพลังรักษา = 5 x เลเวล = 5 HP แตะรักษาได้ (1 แอคชัน)','เวทเริ่มได้ที่เลเวล 2'],
+    equip:[{t:'อาวุธ',o:[[pk('martial'),ar('shield')],[pk('martial',2)]]},{t:'อาวุธรอง',o:[[w('javelin',5)],[pk('simplemelee')]]},{t:'แพ็ก',o:[[pack('priest')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[ar('chain'),tx('Holy symbol (สัญลักษณ์ศักดิ์สิทธิ์)')]}]},
+  ranger:{n:'เรนเจอร์',en:'Ranger',hd:10,saves:['STR','DEX'],nSk:3,skills:['animal','athletics','insight','investigation','nature','perception','stealth','survival'],
+    armorP:['light','medium','shield'],wp:['simple','martial'],order:['DEX','WIS','CON','STR','INT','CHA'],
+    desc:'นักล่า นักสำรวจ ยิงธนูเก่ง (เวทเริ่มที่เลเวล 2)',diff:'ปานกลาง',
+    feats:['Favored Enemy: เลือกศัตรูโปรด 1 ประเภท (ได้เปรียบตามรอย/จำข้อมูล)','Natural Explorer: เลือกภูมิประเทศโปรด 1 แบบ','เวทเริ่มได้ที่เลเวล 2'],
+    equip:[{t:'เกราะ',o:[[ar('scale')],[ar('leather')]]},{t:'อาวุธ',o:[[w('shortsword',2)],[pk('simplemelee',2)]]},{t:'แพ็ก',o:[[pack('dungeoneer')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[w('longbow'),tx('ลูกธนู (arrows) ในกระบอก',20)]}]},
+  rogue:{n:'โร้ก',en:'Rogue',hd:8,saves:['DEX','INT'],nSk:4,skills:['acrobatics','athletics','deception','insight','intimidation','investigation','perception','performance','persuasion','sleight','stealth'],
+    armorP:['light'],wp:['simple','handcrossbow','longsword','rapier','shortsword'],order:['DEX','INT','CON','CHA','WIS','STR'],expertise:2,fixedTools:['Thieves\' tools'],fixedLang:['Thieves\' Cant'],
+    desc:'โจรเงียบ ทักษะเยอะ โจมตีลับหลังดาเมจสูง',diff:'ง่าย-ปานกลาง',
+    feats:['Expertise: เลือก 2 ทักษะที่ชำนาญ ได้ x2 โบนัสชำนาญ (ถ้าถนัดโจรจะเลือก Thieves\' tools แทนก็ได้)','Sneak Attack: +1d6 ดาเมจ 1 ครั้ง/เทิร์น เมื่อโจมตีด้วยอาวุธ Finesse/ระยะไกลโดยมีเปรียบหรือมีพันธมิตรประชิดเป้าหมาย','Thieves\' Cant: ภาษาลับของโจร'],
+    equip:[{t:'อาวุธหลัก',o:[[w('rapier')],[w('shortsword')]]},{t:'อาวุธรอง',o:[[w('shortbow'),tx('ลูกธนู (arrows)',20)],[w('shortsword')]]},{t:'แพ็ก',o:[[pack('burglar')],[pack('dungeoneer')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[ar('leather'),w('dagger',2),tx('Thieves\' tools (เครื่องมืองัดแงะ)')]}]},
+  sorcerer:{n:'ซอร์เซอเรอร์',en:'Sorcerer',hd:6,saves:['CON','CHA'],nSk:2,skills:['arcana','deception','insight','intimidation','persuasion','religion'],armorP:[],
+    wp:['dagger','dart','sling','quarterstaff','lightcrossbow'],order:['CHA','CON','DEX','WIS','INT','STR'],spell:{ab:'CHA',cantrips:4,known:2,slots:2,kind:'known',list:'Sorcerer'},origin:true,
+    desc:'เวทมนตร์ในสายเลือด HP ต่ำ ตีแรงด้วยคาถา',diff:'ปานกลาง-ยาก',
+    feats:['Spellcasting (ใช้ CHA)','Sorcerous Origin: เลือกต้นกำเนิดเวท 1 แบบ'],
+    equip:[{t:'อาวุธ',o:[[w('lightcrossbow'),tx('ลูกหน้าไม้ (bolts)',20)],[pk('simple')]]},{t:'ตัวช่วยร่ายเวท',o:[[tx('Component pouch (ถุงส่วนผสมเวท)')],[tx('Arcane focus (ตัวช่วยร่ายเวท)')]]},{t:'แพ็ก',o:[[pack('dungeoneer')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[w('dagger',2)]}]},
+  warlock:{n:'วอร์ล็อก',en:'Warlock',hd:8,saves:['WIS','CHA'],nSk:2,skills:['arcana','deception','history','intimidation','investigation','nature','religion'],armorP:['light'],wp:['simple'],
+    order:['CHA','CON','DEX','WIS','INT','STR'],spell:{ab:'CHA',cantrips:2,known:2,slots:1,kind:'known',list:'Warlock',pact:true},patron:true,
+    desc:'ทำสัญญากับพลังลึกลับแลกเวท ยิง Eldritch Blast เก่ง',diff:'ปานกลาง',
+    feats:['Pact Magic (ใช้ CHA) ช่องคาถา 1 ช่อง ฟื้นเมื่อพักสั้น','Otherworldly Patron: เลือกผู้ให้พลัง 1 แบบ'],
+    equip:[{t:'อาวุธ',o:[[w('lightcrossbow'),tx('ลูกหน้าไม้ (bolts)',20)],[pk('simple')]]},{t:'ตัวช่วยร่ายเวท',o:[[tx('Component pouch (ถุงส่วนผสมเวท)')],[tx('Arcane focus (ตัวช่วยร่ายเวท)')]]},{t:'แพ็ก',o:[[pack('scholar')],[pack('dungeoneer')]]},{t:'อาวุธเพิ่ม',fixed:[ar('leather'),w('dagger',2)],pickSimple:true}]},
+  wizard:{n:'วิซาร์ด',en:'Wizard',hd:6,saves:['INT','WIS'],nSk:2,skills:['arcana','history','insight','investigation','medicine','religion'],armorP:[],
+    wp:['dagger','dart','sling','quarterstaff','lightcrossbow'],order:['INT','CON','DEX','WIS','CHA','STR'],spell:{ab:'INT',cantrips:3,kind:'prepared',slots:2,list:'Wizard',book:6},
+    desc:'จอมเวทนักเรียน คาถาหลากหลายที่สุด HP ต่ำ',diff:'ยาก',
+    feats:['Spellcasting (ใช้ INT) มีสมุดคาถา 6 คาถา เตรียมได้ = INT mod + เลเวล','Arcane Recovery: พักสั้นครั้งหนึ่ง/วัน ฟื้นช่องคาถารวมระดับ ≤ ครึ่งเลเวล (ปัดขึ้น) = 1'],
+    equip:[{t:'อาวุธ',o:[[w('quarterstaff')],[w('dagger')]]},{t:'ตัวช่วยร่ายเวท',o:[[tx('Component pouch (ถุงส่วนผสมเวท)')],[tx('Arcane focus (ตัวช่วยร่ายเวท)')]]},{t:'แพ็ก',o:[[pack('scholar')],[pack('explorer')]]},{t:'อุปกรณ์ติดตัว',fixed:[tx('Spellbook (สมุดคาถา)')]}]}
+};
+// วอร์ล็อกได้อาวุธ simple เพิ่ม 1 ชิ้นเอง
+CLASSES.warlock.equip[3] = {t:'อุปกรณ์ติดตัว',fixed:[ar('leather'),pk('simple'),w('dagger',2)]};
+
+const CLASS_ORDER = ['fighter','barbarian','rogue','ranger','paladin','cleric','druid','monk','bard','wizard','sorcerer','warlock'];
+const RACE_ORDER = ['human','dwarf','elf','halfling','dragonborn','gnome','halfelf','halforc','tiefling'];
+
+// ----- ตัวเลือกย่อยระดับ 1
+const DOMAINS = {
+  knowledge:{n:'Knowledge (ความรู้)',skillPick:{n:2,list:['arcana','history','nature','religion'],expertise:true},langPick:2,note:'ได้ภาษาเพิ่ม 2 + ชำนาญ 2 ทักษะ (ได้ x2 โบนัสชำนาญ)'},
+  life:{n:'Life (ชีวิต)',heavy:true,note:'ชำนาญเกราะหนัก, คาถารักษาแรงขึ้น (+2 + ระดับคาถา)'},
+  light:{n:'Light (แสงสว่าง)',note:'ได้ cantrip Light และ Warding Flare'},
+  nature:{n:'Nature (ธรรมชาติ)',heavy:true,skillPick:{n:1,list:['animal','nature','survival']},note:'ชำนาญเกราะหนัก, ได้ cantrip ของ Druid 1 อัน, ชำนาญ 1 ทักษะ'},
+  tempest:{n:'Tempest (พายุ)',heavy:true,martial:true,note:'ชำนาญเกราะหนัก+อาวุธ Martial, Wrath of the Storm'},
+  trickery:{n:'Trickery (เล่ห์กล)',note:'Blessing of the Trickster ให้ผู้อื่นได้เปรียบทอยย่องเงียบ'},
+  war:{n:'War (สงคราม)',heavy:true,martial:true,note:'ชำนาญเกราะหนัก+อาวุธ Martial, War Priest โจมตีเพิ่มได้'}
+};
+const ORIGINS = {draconic:{n:'Draconic Bloodline (สายเลือดมังกร)',note:'HP +1 ทุกเลเวล, ไม่ใส่เกราะ AC = 13 + DEX, ได้ภาษา Draconic',hp:1,ac13:true,lang:['Draconic']},
+  wild:{n:'Wild Magic (เวทผันผวน)',note:'Wild Magic Surge: เวทอาจเกิดผลสุ่ม, Tides of Chaos'}};
+const PATRONS = {archfey:{n:'The Archfey (ราชาแห่งเฟย์)'},fiend:{n:'The Fiend (ปีศาจ)'},greatold:{n:'The Great Old One (ผู้เฒ่าโบราณ)'}};
+const STYLES = {
+  archery:{n:'Archery (ยิงไกล)',note:'+2 ทอยโจมตีอาวุธระยะไกล'},
+  defense:{n:'Defense (ป้องกัน)',note:'+1 AC ขณะใส่เกราะ'},
+  dueling:{n:'Dueling (ดวลเดี่ยว)',note:'+2 ดาเมจอาวุธมือเดียวระยะประชิด เมื่อไม่ถืออาวุธอื่นในมืออีกข้าง'},
+  gwf:{n:'Great Weapon Fighting (อาวุธใหญ่)',note:'ทอยดาเมจอาวุธสองมือได้ 1 หรือ 2 ให้ทอยใหม่ (ต้องใช้ค่าใหม่)'},
+  protection:{n:'Protection (ปกป้อง)',note:'ใช้รีแอคชัน เมื่อศัตรูโจมตีพันธมิตรที่อยู่ติดกัน ให้ศัตรูเสียเปรียบ (ต้องถือโล่)'},
+  twf:{n:'Two-Weapon Fighting (สองอาวุธ)',note:'ดาเมจอาวุธมือรองบวกโบนัสค่าพลังด้วย'}
+};
+
+// ----- ภูมิหลัง
+const BGS = {
+  acolyte:{n:'Acolyte',th:'ผู้รับใช้ศาสนา',skills:['insight','religion'],lang:2,gp:15,feature:'Shelter of the Faithful: ขอที่พักและความช่วยเหลือจากวัดศาสนาเดียวกันได้',items:['Holy symbol','หนังสือสวดมนต์/กงล้อสวดมนต์','ธูป 5 ก้อน','ชุดนักบวช','ชุดธรรมดา 1 ชุด']},
+  charlatan:{n:'Charlatan',th:'นักต้มตุ๋น',skills:['deception','sleight'],tools:['Disguise kit','Forgery kit'],gp:15,feature:'False Identity: มีตัวตนปลอมที่เตรียมไว้พร้อมเอกสาร',items:['ชุดสวยงาม','Disguise kit','อุปกรณ์ต้มตุ๋น (เช่น ขวดน้ำสีปลอม)']},
+  criminal:{n:'Criminal',th:'อาชญากร',skills:['deception','stealth'],toolPick:'gaming',tools:['Thieves\' tools'],gp:15,feature:'Criminal Contact: มีคนกลางติดต่อโลกใต้ดิน',items:['ชะแลง','ชุดมืดมีฮู้ด']},
+  entertainer:{n:'Entertainer',th:'นักแสดง',skills:['acrobatics','performance'],toolPick:'instrument',tools:['Disguise kit'],gp:15,feature:'By Popular Demand: แสดงแลกที่พักและอาหารได้',items:['เครื่องดนตรี 1 ชิ้น (ตามที่เลือก)','ของขวัญจากแฟนคลับ','เครื่องแต่งกายแสดง']},
+  folkhero:{n:'Folk Hero',th:'วีรบุรุษชาวบ้าน',skills:['animal','survival'],toolPick:'artisan',tools:['พาหนะบก (Vehicles, land)'],gp:10,feature:'Rustic Hospitality: ชาวบ้านจะซ่อนและให้ที่พักแก่คุณ',items:['เครื่องมือช่าง 1 ชุด (ตามที่เลือก)','พลั่ว','หม้อเหล็ก','ชุดธรรมดา']},
+  guildartisan:{n:'Guild Artisan',th:'ช่างสมาคม',skills:['insight','persuasion'],toolPick:'artisan',lang:1,gp:15,feature:'Guild Membership: สมาคมช่วยเรื่องที่พัก/อาหาร/เส้นสาย',items:['เครื่องมือช่าง 1 ชุด (ตามที่เลือก)','จดหมายแนะนำจากสมาคม','ชุดนักเดินทาง']},
+  hermit:{n:'Hermit',th:'ฤๅษี',skills:['medicine','religion'],tools:['Herbalism kit'],lang:1,gp:5,feature:'Discovery: ค้นพบความจริงสำคัญบางอย่างในช่วงที่เก็บตัว',items:['กล่องม้วนกระดาษบันทึกการศึกษา','ผ้าห่มฤดูหนาว','ชุดธรรมดา','Herbalism kit']},
+  noble:{n:'Noble',th:'ขุนนาง',skills:['history','persuasion'],toolPick:'gaming',lang:1,gp:25,feature:'Position of Privilege: คนส่วนใหญ่ต้อนรับและให้เกียรติ',items:['ชุดสวยงาม','แหวนตราประทับ','ม้วนบันทึกสายตระกูล']},
+  outlander:{n:'Outlander',th:'คนป่า',skills:['athletics','survival'],toolPick:'instrument',lang:1,gp:10,feature:'Wanderer: จำแผนที่ได้ดีและหาอาหาร/น้ำให้ตัวเองกับอีก 5 คนได้',items:['ไม้เท้า','กับดักล่าสัตว์','ของสะสมจากสัตว์ที่ล่า','ชุดนักเดินทาง']},
+  sage:{n:'Sage',th:'นักปราชญ์',skills:['arcana','history'],lang:2,gp:10,feature:'Researcher: ไม่รู้คำตอบก็รู้ว่าจะไปหาได้จากที่ไหน',items:['หมึก 1 ขวด','ปากกาขนนก','มีดเล็ก','จดหมายจากเพื่อนร่วมงานที่เสียชีวิต','ชุดธรรมดา']},
+  sailor:{n:'Sailor',th:'ลูกเรือ',skills:['athletics','perception'],tools:['Navigator\'s tools','พาหนะน้ำ (Vehicles, water)'],gp:10,feature:'Ship\'s Passage: ขอโดยสารเรือฟรีได้ (ช่วยงานบนเรือ)',items:['Belaying pin (ใช้เป็น Club)','เชือกไหม 50 ฟุต','เครื่องรางนำโชค','ชุดธรรมดา']},
+  soldier:{n:'Soldier',th:'ทหาร',skills:['athletics','intimidation'],toolPick:'gaming',tools:['พาหนะบก (Vehicles, land)'],gp:10,feature:'Military Rank: ทหารที่ยศต่ำกว่าเชื่อฟังคุณ',items:['เครื่องหมายยศ','ของสะสมจากศึก','ลูกเต๋า/ไพ่ 1 ชุด','ชุดธรรมดา']},
+  urchin:{n:'Urchin',th:'เด็กข้างถนน',skills:['sleight','stealth'],tools:['Disguise kit','Thieves\' tools'],gp:10,feature:'City Secrets: รู้ทางลัดและเส้นทางลับในเมือง เดินทางได้เร็วเป็นสองเท่า',items:['มีดเล็ก','แผนที่เมืองที่เติบโตมา','หนูเลี้ยง','ของที่ระลึกจากพ่อแม่','ชุดธรรมดา']}
+};
+const BG_ORDER = ['acolyte','charlatan','criminal','entertainer','folkhero','guildartisan','hermit','noble','outlander','sage','sailor','soldier','urchin'];
+// ===== LOGIC (pure) =====
+const mod = s => Math.floor((s - 10) / 2);
+const sg = n => (n >= 0 ? '+' + n : '-' + Math.abs(n));
+const RANGE = {lightcrossbow:'80/320',shortbow:'80/320',longbow:'150/600',handcrossbow:'30/120',heavycrossbow:'100/400',sling:'30/120',dart:'20/60',
+  dagger:'20/60',handaxe:'20/60',javelin:'30/120',lighthammer:'20/60',spear:'20/60',trident:'20/60'};
+const POINT_COST = {8:0,9:1,10:2,11:3,12:4,13:5,14:7,15:9};
+const STD_ARRAY = [15,14,13,12,10,8];
+
+function newState() {
+  return {name:'', align:'', race:'', sub:'', dragon:'', hePlus:[], cls:'', domain:'', origin:'', patron:'', style:'', bg:'',
+    method:'array', pool:[], assign:{}, buy:{STR:8,DEX:8,CON:8,INT:8,WIS:8,CHA:8},
+    sk:{}, exp:[], lang:[], tool:{}, eq:{}, pickw:{}, step:0};
+}
+
+// ---------- ข้อมูลที่ประกอบจากตัวเลือก ----------
+function raceInfo(S) {
+  const r = RACES[S.race]; if (!r) return null;
+  const sub = (r.subs && r.subs[S.sub]) || null;
+  const asi = Object.assign({}, r.asi);
+  if (sub && sub.asi) for (const k in sub.asi) asi[k] = (asi[k] || 0) + sub.asi[k];
+  if (r.halfElfPlus) for (const a of S.hePlus) asi[a] = (asi[a] || 0) + 1;
+  return {
+    r, sub, asi, spd: (sub && sub.spd) || r.spd, lang: r.lang.slice(),
+    extraLang: (r.extraLang || 0) + ((sub && sub.extraLang) || 0),
+    wp: (r.wp || []).concat((sub && sub.wp) || []),
+    armorP: (sub && sub.armorP) || [], hp: (sub && sub.hp) || 0,
+    skills: (r.skills || []).slice(), skillPick: r.skillPick || 0,
+    name: r.n + (sub ? ' (' + sub.n.split(' (')[0] + ')' : ''),
+    needSub: !!r.subs
+  };
+}
+const clsOf = S => CLASSES[S.cls] || null;
+const bgOf = S => BGS[S.bg] || null;
+const domOf = S => (S.cls === 'cleric' && DOMAINS[S.domain]) || null;
+const orgOf = S => (S.cls === 'sorcerer' && ORIGINS[S.origin]) || null;
+
+function profArmor(S) {
+  const c = clsOf(S), ri = raceInfo(S), d = domOf(S);
+  let a = (c ? c.armorP : []).concat(ri ? ri.armorP : []);
+  if (d && d.heavy) a = a.concat(['heavy']);
+  return a;
+}
+function isWeaponProf(S, id) {
+  const c = clsOf(S), ri = raceInfo(S), d = domOf(S);
+  const cat = W[id][2];
+  if (c && (c.wp.includes(cat) || c.wp.includes(id))) return true;
+  if (ri && ri.wp.includes(id)) return true;
+  if (d && d.martial && cat === 'martial') return true;
+  return false;
+}
+
+// กลุ่มทักษะที่ต้องเลือก
+function skillGroups(S) {
+  const g = [], c = clsOf(S), ri = raceInfo(S), d = domOf(S);
+  if (c) g.push({key:'class', label:'อาชีพ ' + c.n + ': เลือก ' + c.nSk + ' ทักษะ', n:c.nSk, list:c.skills || SK_IDS});
+  if (ri && ri.skillPick) g.push({key:'race', label:'ฮาล์ฟเอลฟ์: เลือก ' + ri.skillPick + ' ทักษะอะไรก็ได้', n:ri.skillPick, list:SK_IDS});
+  if (d && d.skillPick) g.push({key:'domain', label:'สายเทพ ' + d.n.split(' (')[0] + ': เลือก ' + d.skillPick.n + ' ทักษะ' + (d.skillPick.expertise ? ' (ได้ x2 โบนัสชำนาญ)' : ''), n:d.skillPick.n, list:d.skillPick.list});
+  return g;
+}
+function fixedSkills(S) {
+  const b = bgOf(S), ri = raceInfo(S);
+  return (b ? b.skills : []).concat(ri ? ri.skills : []);
+}
+function fixedSkillSource(S, id) {
+  const b = bgOf(S), ri = raceInfo(S);
+  if (b && b.skills.includes(id)) return 'ภูมิหลัง';
+  if (ri && ri.skills.includes(id)) return 'เผ่าพันธุ์';
+  return '';
+}
+function toolNeeds(S) {
+  const out = [], c = clsOf(S), ri = raceInfo(S), b = bgOf(S);
+  if (ri && ri.r.toolPick) out.push({key:'race', label:'ดวอร์ฟ: เลือกเครื่องมือช่าง 1 อย่าง', list:TOOLS[ri.r.toolPick].list});
+  if (b && b.toolPick) out.push({key:'bg', label:'ภูมิหลัง ' + b.n + ': ' + TOOLS[b.toolPick].label + ' 1 อย่าง', list:TOOLS[b.toolPick].list});
+  if (c && c.tools) c.tools.forEach(([k, n], i) => { for (let j = 0; j < n; j++) out.push({key:'c' + i + '_' + j, label:'อาชีพ ' + c.n + ': ' + TOOLS[k].label + (n > 1 ? ' (ชิ้นที่ ' + (j + 1) + '/' + n + ')' : ' 1 อย่าง'), list:TOOLS[k].list}); });
+  return out;
+}
+function fixedLangs(S) {
+  const c = clsOf(S), ri = raceInfo(S), o = orgOf(S);
+  return (ri ? ri.lang : []).concat(c && c.fixedLang ? c.fixedLang : [], o && o.lang ? o.lang : []);
+}
+function langNeed(S) {
+  const ri = raceInfo(S), b = bgOf(S), d = domOf(S);
+  return (ri ? ri.extraLang : 0) + (b && b.lang ? b.lang : 0) + (d && d.langPick ? d.langPick : 0);
+}
+
+// ---------- ล้างค่าที่ไม่ถูกต้อง ----------
+function sanitize(S) {
+  const ri = raceInfo(S);
+  if (!ri || !ri.r.subs || !ri.r.subs[S.sub]) { if (!ri || !ri.r.subs) S.sub = ''; else if (!ri.r.subs[S.sub]) S.sub = ''; }
+  if (!ri || !ri.r.dragon) S.dragon = '';
+  if (!ri || !ri.r.halfElfPlus) S.hePlus = []; else S.hePlus = S.hePlus.filter((a, i, arr) => a !== 'CHA' && arr.indexOf(a) === i).slice(0, 2);
+  if (S.cls !== 'cleric') S.domain = ''; if (S.cls !== 'sorcerer') S.origin = '';
+  if (S.cls !== 'warlock') S.patron = ''; if (S.cls !== 'fighter') S.style = '';
+  // ทักษะ
+  const taken = new Set(fixedSkills(S)); const groups = skillGroups(S); const sk = {};
+  groups.forEach(g => {
+    sk[g.key] = (S.sk[g.key] || []).filter(id => g.list.includes(id) && !taken.has(id)).slice(0, g.n);
+    sk[g.key].forEach(id => taken.add(id));
+  });
+  S.sk = sk;
+  const allProf = allSkillProf(S);
+  const c = clsOf(S);
+  S.exp = (c && c.expertise) ? S.exp.filter(id => allProf.includes(id)).slice(0, c.expertise) : [];
+  // เครื่องมือ
+  const tn = toolNeeds(S); const tool = {};
+  tn.forEach(t => { if (S.tool[t.key] && t.list.includes(S.tool[t.key])) tool[t.key] = S.tool[t.key]; });
+  // ไม่ให้ชุดเดียวกันซ้ำในกลุ่ม class (บาร์ด)
+  const seen = new Set();
+  Object.keys(tool).forEach(k => { if (!k.startsWith('c')) return; if (seen.has(tool[k])) delete tool[k]; else seen.add(tool[k]); });
+  S.tool = tool;
+  // ภาษา
+  const fl = new Set(fixedLangs(S)); const need = langNeed(S); const lang = [];
+  (S.lang || []).forEach(l => { if (LANGS.includes(l) && !fl.has(l) && !lang.includes(l) && lang.length < need) lang.push(l); });
+  S.lang = lang;
+  // อุปกรณ์: ตัวเลือกที่ไม่ได้รับอนุญาต
+  if (c) c.equip.forEach((g, gi) => {
+    if (g.o) { const oi = S.eq[gi]; if (oi !== undefined && (!g.o[oi] || !optionAllowed(S, g.o[oi]))) delete S.eq[gi]; }
+  });
+  Object.keys(S.pickw).forEach(k => { if (!W[S.pickw[k]]) delete S.pickw[k]; });
+  if (c) { // ล้างอาวุธที่เลือกในตัวเลือกที่ไม่ได้ใช้
+    const keep = new Set();
+    c.equip.forEach((g, gi) => {
+      const items = g.o ? (S.eq[gi] !== undefined ? g.o[S.eq[gi]] : []) : g.fixed;
+      (items || []).forEach((it, ii) => { if (it.pick) keep.add(gi + '.' + (g.o ? S.eq[gi] : 0) + '.' + ii); });
+    });
+    Object.keys(S.pickw).forEach(k => { if (!keep.has(k)) delete S.pickw[k]; });
+  }
+  return S;
+}
+function allSkillProf(S) {
+  let a = fixedSkills(S).slice(); Object.values(S.sk || {}).forEach(v => { a = a.concat(v); });
+  return a.filter((x, i) => a.indexOf(x) === i);
+}
+function optionAllowed(S, opt) {
+  const pa = profArmor(S);
+  for (const it of opt) {
+    if (it.a && ARMOR[it.a]) { const t = ARMOR[it.a][2]; if (!pa.includes(t)) return false; }
+    if (it.w && !isWeaponProf(S, it.w)) return false;
+  }
+  return true;
+}
+function optionWhyNot(S, opt) {
+  const pa = profArmor(S);
+  for (const it of opt) {
+    if (it.a && ARMOR[it.a] && !pa.includes(ARMOR[it.a][2])) return 'ต้องชำนาญเกราะหนัก (เลือกสายเทพ Life/Nature/Tempest/War)';
+    if (it.w && !isWeaponProf(S, it.w)) return 'ต้องชำนาญอาวุธ Martial (เลือกสายเทพ Tempest/War)';
+  }
+  return '';
+}
+
+// ---------- ค่าความสามารถ ----------
+function poolValues(S) { return S.method === 'array' ? STD_ARRAY : S.pool; }
+function baseScores(S) {
+  const o = {};
+  AB.forEach(a => {
+    if (S.method === 'buy') o[a] = S.buy[a];
+    else { const idx = S.assign[a]; const p = poolValues(S); o[a] = (idx === undefined || idx === null || p[idx] === undefined) ? null : p[idx]; }
+  });
+  return o;
+}
+function buyTotal(S) { return AB.reduce((t, a) => t + (POINT_COST[S.buy[a]] || 0), 0); }
+function finalScores(S) {
+  const b = baseScores(S), ri = raceInfo(S), o = {};
+  AB.forEach(a => { o[a] = b[a] === null ? null : b[a] + (ri && ri.asi[a] ? ri.asi[a] : 0); });
+  return o;
+}
+function autoAssign(S) {
+  const c = clsOf(S); if (!c) return;
+  if (S.method === 'buy') { c.order.forEach((a, i) => { S.buy[a] = STD_ARRAY[i]; }); return; }
+  const p = poolValues(S); const idxs = p.map((v, i) => i).sort((x, y) => p[y] - p[x]);
+  S.assign = {}; c.order.forEach((a, i) => { if (idxs[i] !== undefined) S.assign[a] = idxs[i]; });
+}
+function roll4d6() { const d = [1,2,3,4].map(() => 1 + Math.floor(Math.random() * 6)).sort((a, b) => a - b); return d[1] + d[2] + d[3]; }
+// ===== COMPUTE (pure) =====
+function resolveEquip(S) {
+  const c = clsOf(S), out = {weapons:[], armor:[], packs:[], texts:[], missing:[]};
+  if (!c) return out;
+  const add = (it, key) => {
+    if (it.w) out.weapons.push({id:it.w, q:it.q || 1});
+    else if (it.a) out.armor.push({id:it.a, label:it.label});
+    else if (it.pack) out.packs.push(it.pack);
+    else if (it.t) out.texts.push({t:it.t, q:it.q || 1});
+    else if (it.pick) {
+      const id = S.pickw[key];
+      if (id && W[id]) out.weapons.push({id, q:it.q || 1}); else out.missing.push('เลือกอาวุธ: ' + PICKS[it.pick].label);
+    }
+  };
+  c.equip.forEach((g, gi) => {
+    if (g.fixed) g.fixed.forEach((it, ii) => add(it, gi + '.0.' + ii));
+    else {
+      const oi = S.eq[gi];
+      if (oi === undefined) out.missing.push('เลือกอุปกรณ์กลุ่ม "' + g.t + '"');
+      else g.o[oi].forEach((it, ii) => add(it, gi + '.' + oi + '.' + ii));
+    }
+  });
+  return out;
+}
+
+function weaponRow(S, id, q, sc) {
+  const w = W[id], f = wf(id), c = clsOf(S);
+  const st = mod(sc.STR), dx = mod(sc.DEX), ranged = w[3] === 'r';
+  const monkW = c && c.monkWeapons && !ranged && ((w[2] === 'simple' && !f.two && !f.h) || id === 'shortsword');
+  let ab, why;
+  if (ranged) { ab = 'DEX'; why = 'อาวุธระยะไกลใช้ DEX'; }
+  else if (f.f || monkW) { ab = dx > st ? 'DEX' : 'STR'; why = (monkW ? 'อาวุธของ Monk' : 'อาวุธ Finesse') + ' เลือกใช้ STR หรือ DEX ที่สูงกว่า'; }
+  else { ab = 'STR'; why = 'อาวุธระยะประชิดใช้ STR'; }
+  const m = ab === 'STR' ? st : dx;
+  const prof = isWeaponProf(S, id);
+  let atk = m + (prof ? 2 : 0), atkWhy = ab + ' ' + sg(m) + (prof ? ' + ชำนาญ 2' : '');
+  if (S.style === 'archery' && ranged) { atk += 2; atkWhy += ' + Archery 2'; }
+  let dm = m, dmWhy = ab + ' ' + sg(m);
+  if (S.style === 'dueling' && !ranged && !f.two) { dm += 2; dmWhy += ' + Dueling 2 (ถ้าถืออาวุธมือเดียว ไม่ถืออาวุธอื่น)'; }
+  const dmg = w[4] + (dm !== 0 ? sg(dm) : '') + ' ' + DT[w[5]];
+  const notes = [];
+  if (f.v) notes.push('ถือสองมือ ' + f.v + (dm !== 0 ? sg(dm) : ''));
+  if (RANGE[id]) notes.push((ranged ? 'ระยะ ' : 'ขว้างได้ ระยะ ') + RANGE[id] + ' ฟุต');
+  if (f.t && !ranged) notes.push('ขว้างแล้วใช้ ' + (f.f ? 'STR หรือ DEX' : 'STR'));
+  if (f.two) notes.push('ต้องถือสองมือ');
+  if (f.r) notes.push('Reach 10 ฟุต');
+  if (f.a) notes.push('ใช้กระสุน/ลูกธนู');
+  if (f.ld) notes.push('Loading (ยิงได้ 1 ครั้ง/แอคชัน)');
+  if (f.l) notes.push('Light (ใช้สองอาวุธได้)');
+  if (S.style === 'gwf' && !ranged && (f.two || f.v)) notes.push('GWF: ทอยดาเมจได้ 1-2 ทอยใหม่ (ถ้าถือสองมือ)');
+  if (S.style === 'twf' && f.l) notes.push('TWF: อาวุธมือรองบวกโบนัสดาเมจ');
+  if (!prof) notes.push('⚠️ ไม่ชำนาญอาวุธนี้ ไม่บวกโบนัสชำนาญ');
+  return {id, name:w[0] + (q > 1 ? ' x' + q : ''), th:w[1], atk, dmg, atkWhy, dmWhy, why, notes, ab};
+}
+
+function computeAC(S, sc, eq) {
+  const c = clsOf(S), o = orgOf(S), d = mod(sc.DEX || 10);
+  const pa = profArmor(S);
+  const body = eq.armor.filter(a => ['light','medium','heavy'].includes(ARMOR[a.id][2]));
+  const hasShield = eq.armor.some(a => a.id === 'shield') && pa.includes('shield');
+  const opts = [];
+  body.forEach(a => {
+    const A = ARMOR[a.id], cap = A[4];
+    const add = cap === null ? d : (cap === 0 ? 0 : Math.min(d, cap));
+    const dexTxt = cap === null ? 'DEX ' + sg(d) : (cap === 0 ? 'ไม่บวก DEX' : 'DEX ' + sg(add) + ' (สูงสุด +2)');
+    opts.push({v:A[3] + add, txt:A[0] + ' ' + A[3] + ' + ' + dexTxt, armor:A, worn:true});
+  });
+  const noArmor = body.length === 0;
+  if (noArmor || true) {
+    if (S.cls === 'barbarian') opts.push({v:10 + d + mod(sc.CON || 10), txt:'Unarmored Defense: 10 + DEX ' + sg(d) + ' + CON ' + sg(mod(sc.CON || 10)), worn:false});
+    else if (S.cls === 'monk') opts.push({v:10 + d + mod(sc.WIS || 10), txt:'Unarmored Defense: 10 + DEX ' + sg(d) + ' + WIS ' + sg(mod(sc.WIS || 10)), worn:false, noShield:true});
+    else if (o && o.ac13) opts.push({v:13 + d, txt:'Draconic Resilience: 13 + DEX ' + sg(d), worn:false});
+    else opts.push({v:10 + d, txt:'ไม่ใส่เกราะ: 10 + DEX ' + sg(d), worn:false});
+  }
+  // เลือกค่าสูงสุด (ถ้ามีเกราะที่ใส่ได้ ใส่เกราะ)
+  const wearable = opts.filter(x => !x.worn || pa.includes(x.armor[2]));
+  wearable.sort((a, b) => b.v - a.v);
+  const best = wearable[0];
+  let ac = best.v, txt = best.txt;
+  if (hasShield && !best.noShield) { ac += 2; txt += ' + โล่ 2'; }
+  if (S.style === 'defense' && best.worn) { ac += 1; txt += ' + Defense 1'; }
+  const notes = [];
+  if (best.worn) {
+    if (best.armor[6]) notes.push('เกราะนี้ทำให้ทอยย่องเงียบ (Stealth) เสียเปรียบ');
+    if (best.armor[5] && (sc.STR || 0) < best.armor[5]) notes.push('STR ต่ำกว่า ' + best.armor[5] + ' ความเร็วลด 10 ฟุต');
+  }
+  body.forEach(a => { const t = ARMOR[a.id][2]; if (!pa.includes(t)) notes.push('คุณไม่ชำนาญเกราะประเภทนี้ (' + ARMOR[a.id][0] + ')'); });
+  return {ac, txt, notes, armorName: best.worn ? ARMOR[body.find(a => ARMOR[a.id] === best.armor).id][0] + ' (' + ARMOR[body.find(a => ARMOR[a.id] === best.armor).id][1] + ')' : '— (ไม่ใส่เกราะ)', shield: hasShield && !best.noShield};
+}
+
+function compute(S) {
+  const R = {missing:[], notes:[]};
+  const miss = (step, msg) => R.missing.push({step, msg});
+  const ri = raceInfo(S), c = clsOf(S), b = bgOf(S), d = domOf(S), o = orgOf(S);
+  const base = baseScores(S), sc = finalScores(S);
+  const full = AB.every(a => sc[a] !== null);
+  const scv = {}; AB.forEach(a => { scv[a] = sc[a] === null ? 10 : sc[a]; });
+  // ---- missing
+  if (!ri) miss('race', 'ยังไม่ได้เลือกเผ่าพันธุ์'); else {
+    if (ri.needSub && !ri.sub) miss('race', 'เลือกเผ่าย่อยของ' + ri.r.n);
+    if (ri.r.dragon && !S.dragon) miss('race', 'เลือกสายมังกร (Draconic Ancestry)');
+    if (ri.r.halfElfPlus && S.hePlus.length < 2) miss('race', 'เลือกค่าพลังที่ได้ +1 ให้ครบ 2 ค่า');
+  }
+  if (!c) miss('class', 'ยังไม่ได้เลือกอาชีพ'); else {
+    if (c.domain && !d) miss('class', 'เลือก Divine Domain');
+    if (c.origin && !o) miss('class', 'เลือก Sorcerous Origin');
+    if (c.patron && !S.patron) miss('class', 'เลือก Otherworldly Patron');
+    if (c.style && !S.style) miss('class', 'เลือก Fighting Style');
+  }
+  if (!b) miss('bg', 'ยังไม่ได้เลือกภูมิหลัง');
+  if (!full) miss('abil', 'ยังจัดค่าความสามารถไม่ครบ 6 ค่า');
+  if (S.method === 'buy' && buyTotal(S) > 27) miss('abil', 'Point Buy ใช้แต้มเกิน 27');
+  skillGroups(S).forEach(g => { const n = (S.sk[g.key] || []).length; if (n < g.n) miss('skill', g.label + ' (เลือกแล้ว ' + n + ')'); });
+  if (c && c.expertise && S.exp.length < c.expertise) miss('skill', 'โร้ก: เลือก Expertise ' + c.expertise + ' ทักษะ');
+  toolNeeds(S).forEach(t => { if (!S.tool[t.key]) miss('skill', t.label); });
+  const ln = langNeed(S); if (S.lang.length < ln) miss('skill', 'เลือกภาษาเพิ่ม (เหลือ ' + (ln - S.lang.length) + ')');
+  const eq = resolveEquip(S); eq.missing.forEach(m => miss('equip', m));
+  if (!S.name.trim()) miss('info', 'ตั้งชื่อตัวละคร');
+  if (!S.align) miss('info', 'เลือกแนวทางศีลธรรม');
+
+  // ---- header
+  R.name = S.name.trim(); R.align = S.align; R.level = 1; R.prof = 2;
+  R.raceName = ri ? ri.name : ''; R.className = c ? c.n + ' (' + c.en + ')' : '';
+  R.bgName = b ? b.n + ' (' + b.th + ')' : '';
+  // ---- abilities
+  R.abilities = AB.map(a => {
+    const m = mod(scv[a]), saveProf = !!(c && c.saves.includes(a));
+    return {ab:a, th:AB_TH[a], score:sc[a], base:base[a], racial:(ri && ri.asi[a]) || 0, mod:m, save:m + (saveProf ? 2 : 0), saveProf};
+  });
+  // ---- HP / speed / init
+  const conM = mod(scv.CON);
+  if (c) {
+    const extra = (ri ? ri.hp : 0) + (o && o.hp ? o.hp : 0);
+    R.hp = Math.max(1, c.hd + conM + extra);
+    R.hpWhy = 'Hit Die d' + c.hd + ' (ใช้ค่าสูงสุด ' + c.hd + ') + CON ' + sg(conM) + (extra ? ' + โบนัสเผ่า/สายเลือด ' + extra : '');
+  } else { R.hp = null; R.hpWhy = ''; }
+  R.speed = ri ? ri.spd : null; R.init = mod(scv.DEX);
+  // ---- AC
+  const acr = computeAC(S, scv, eq); R.ac = acr.ac; R.acWhy = acr.txt; R.armorName = acr.armorName; R.acNotes = acr.notes;
+  if (S.race !== 'dwarf' && acr.notes.some(n => n.includes('ความเร็วลด')) && R.speed) { R.speed -= 10; R.speedWhy = 'ลด 10 ฟุตเพราะ STR ไม่ถึงเกณฑ์เกราะ'; }
+  // ---- weapons
+  R.weapons = [];
+  if (c && S.cls === 'monk') {
+    const m = Math.max(mod(scv.STR), mod(scv.DEX)), ab = mod(scv.DEX) > mod(scv.STR) ? 'DEX' : 'STR';
+    R.weapons.push({name:'Unarmed Strike', th:'ต่อยมือเปล่า (Martial Arts)', atk:m + 2, dmg:'1d4' + (m !== 0 ? sg(m) : '') + ' กระแทก', atkWhy:ab + ' ' + sg(m) + ' + ชำนาญ 2', dmWhy:ab + ' ' + sg(m), why:'Martial Arts เลือก STR หรือ DEX', notes:['ต่อยเพิ่มเป็นโบนัสแอคชันได้หลังโจมตีด้วยอาวุธ Monk/มือเปล่า']});
+  }
+  eq.weapons.forEach(w => R.weapons.push(weaponRow(S, w.id, w.q, scv)));
+  // ---- skills
+  const fixed = fixedSkills(S), chosen = allSkillProf(S);
+  const expSet = new Set(S.exp);
+  if (d && d.skillPick && d.skillPick.expertise) (S.sk.domain || []).forEach(id => expSet.add(id));
+  R.skills = SK_IDS.map(id => {
+    const [th, en, ab] = SK[id], p = chosen.includes(id), e = p && expSet.has(id);
+    const m = mod(scv[ab]);
+    return {id, th, en, ab, prof:p, exp:e, bonus:m + (e ? 4 : p ? 2 : 0), why:ab + ' ' + sg(m) + (e ? ' + ชำนาญ x2 = 4' : p ? ' + ชำนาญ 2' : '')};
+  });
+  // ---- languages & tools
+  R.languages = fixedLangs(S).concat(S.lang);
+  R.tools = [];
+  if (b && b.tools) R.tools = R.tools.concat(b.tools);
+  if (c && c.fixedTools) R.tools = R.tools.concat(c.fixedTools);
+  toolNeeds(S).forEach(t => { if (S.tool[t.key]) R.tools.push(S.tool[t.key]); });
+  const dupT = R.tools.filter((x, i, a) => a.indexOf(x) !== i);
+  R.tools = R.tools.filter((x, i, a) => a.indexOf(x) === i);
+  if (dupT.length) R.notes.push('ได้ความชำนาญ ' + dupT.join(', ') + ' ซ้ำจาก 2 แหล่ง: ตามกติกา เลือกความชำนาญเครื่องมืออื่นแทนได้ 1 อย่าง (ถามผู้เล่น/GM) แล้วเขียนเพิ่มในช่องความสามารถพิเศษ');
+  // ---- proficiencies line
+  const armTh = {light:'เกราะเบา',medium:'เกราะกลาง',heavy:'เกราะหนัก',shield:'โล่'};
+  const pa = profArmor(S);
+  R.profArmor = pa.length ? pa.map(x => armTh[x]).join(', ') : 'ไม่มี';
+  R.profWeapons = c ? c.wp.map(x => x === 'simple' ? 'อาวุธ Simple ทั้งหมด' : x === 'martial' ? 'อาวุธ Martial ทั้งหมด' : (W[x] ? W[x][0] : x)).concat(ri ? ri.wp.map(x => W[x][0]) : []).filter((x, i, a) => a.indexOf(x) === i).join(', ') : '';
+  // ---- spells
+  R.spell = null;
+  if (c && c.spell) {
+    const sp = c.spell, m = mod(scv[sp.ab]);
+    R.spell = {ab:sp.ab, dc:8 + 2 + m, atk:2 + m, cantrips:sp.cantrips, slots:sp.slots, kind:sp.kind, known:sp.known || null, book:sp.book || null,
+      prepared: sp.kind === 'prepared' ? Math.max(1, m + 1) : null, list:sp.list, pact:!!sp.pact, m};
+  }
+  // ---- features
+  R.features = [];
+  const F = (title, lines) => { if (lines && lines.length) R.features.push({title, lines}); };
+  if (ri) {
+    const lines = ri.r.feats.concat(ri.sub ? ri.sub.feats : []);
+    if (ri.r.dragon && S.dragon) {
+      const dr = DRAGONS[S.dragon], dc = 8 + mod(scv.CON) + 2;
+      lines.push('Breath Weapon (' + dr[0].split(' (')[0] + '): พ่น ' + dr[2] + ' ดาเมจ' + dr[1].split(' (')[0] + ' 2d6 (ผู้ถูกพ่นทอยป้องกัน ' + dr[3] + ' DC ' + dc + ' ได้ดาเมจครึ่งเดียวถ้าผ่าน) ใช้ได้ 1 ครั้ง/พักสั้นหรือยาว');
+      lines.push('Damage Resistance: ต้านทานดาเมจ' + dr[1].split(' (')[0]);
+    }
+    F('เผ่าพันธุ์ ' + ri.name, lines);
+  }
+  if (c) {
+    const lines = c.feats.slice();
+    if (d) lines.push('Domain ' + d.n + ': ' + d.note);
+    if (o) lines.push('Origin ' + o.n + ': ' + o.note);
+    if (S.patron) lines.push('Patron ' + PATRONS[S.patron].n);
+    if (S.style) lines.push('Fighting Style ' + STYLES[S.style].n + ': ' + STYLES[S.style].note);
+    F('อาชีพ ' + c.n, lines);
+  }
+  if (b) F('ภูมิหลัง ' + b.n, [b.feature]);
+  R.className2 = c ? c.n : '';
+  // ---- equipment
+  R.equipment = [];
+  eq.weapons.forEach(w => R.equipment.push(W[w.id][0] + (w.q > 1 ? ' x' + w.q : '') + ' (' + W[w.id][1] + ')'));
+  eq.armor.forEach(a => R.equipment.push(a.label || (ARMOR[a.id][0] + ' (' + ARMOR[a.id][1] + ')')));
+  eq.packs.forEach(p => R.equipment.push(PACKS[p][0] + ' (' + PACKS[p][1] + ')'));
+  eq.texts.forEach(t => R.equipment.push(t.t + (t.q > 1 ? ' x' + t.q : '')));
+  if (b) { b.items.forEach(i => R.equipment.push(i)); R.equipment.push(b.gp + ' gp (ถุงเงิน)'); }
+  R.packs = eq.packs.map(p => ({name:PACKS[p][0], th:PACKS[p][1], contents:PACKS[p][2]}));
+  R.gp = b ? b.gp : 0;
+  R.complete = R.missing.length === 0;
+  return R;
+}
+// ===== UI (browser) =====
+const STEPS = [{id:'race',t:'1 เผ่าพันธุ์'},{id:'class',t:'2 อาชีพ'},{id:'bg',t:'3 ภูมิหลัง'},{id:'abil',t:'4 ค่าความสามารถ'},{id:'skill',t:'5 ทักษะ/ภาษา'},{id:'equip',t:'6 อุปกรณ์'},{id:'info',t:'7 ชื่อ/ศีลธรรม'},{id:'result',t:'ผลลัพธ์ ✦'}];
+let S = newState();
+const UI = {why:true, checks:{}, copied:'', loaded:false};
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const asiTxt = a => Object.keys(a).map(k => k + ' ' + sg(a[k])).join(', ');
+const skName = id => SK[id][0] + ' (' + SK[id][1] + ')';
+const itemLabel = (it, S2) => {
+  if (it.w) return W[it.w][0] + (it.q > 1 ? ' x' + it.q : '') + ' · ' + W[it.w][1];
+  if (it.a) return it.label || (ARMOR[it.a][0] + ' · ' + ARMOR[it.a][1]);
+  if (it.pack) return PACKS[it.pack][0] + ' · ' + PACKS[it.pack][1];
+  if (it.pick) return PICKS[it.pick].label + (it.q > 1 ? ' x' + it.q : '');
+  return it.t + (it.q > 1 ? ' x' + it.q : '');
+};
+
+function save() { try { localStorage.setItem('dnd-builder-v1', JSON.stringify(S)); } catch (e) {} try { if (window.hot && hot.snapshot) hot.snapshot(S); } catch (e) {} }
+function load() {
+  try { const j = localStorage.getItem('dnd-builder-v1'); if (j) { S = Object.assign(newState(), JSON.parse(j)); sanitize(S); } } catch (e) {}
+}
+
+function stepStatus(id, R) {
+  const m = R.missing.filter(x => x.step === id).length;
+  const pre = {race:S.race, class:S.cls, bg:S.bg, skill:S.cls && S.bg && S.race, equip:S.cls, abil:true, info:S.name.trim() || S.align, result:true}[id];
+  if (id === 'result') return R.complete ? 'done' : '';
+  if (!pre) return '';
+  return m ? 'warn' : 'done';
+}
+
+function chipsHtml() {
+  const R = compute(S);
+  return STEPS.map((s, i) => '<button class="chip ' + (i === S.step ? 'on ' : '') + stepStatus(s.id, R) + '" data-a="go" data-v="' + i + '"><span class="dot"></span>' + s.t + '</button>').join('');
+}
+
+// ---------- step: race ----------
+function stepRace() {
+  let h = '<div class="card"><h2>เลือกเผ่าพันธุ์</h2><p class="lead">เผ่าพันธุ์กำหนดค่าพลังโบนัส ความเร็ว ภาษา และความสามารถติดตัวของคุณ</p><div class="grid">';
+  RACE_ORDER.forEach(id => { const r = RACES[id]; h += '<button class="opt ' + (S.race === id ? 'sel' : '') + '" data-a="race" data-v="' + id + '"><b>' + r.n + ' <small style="display:inline">' + r.en + '</small></b><small>' + r.desc + '</small></button>'; });
+  h += '</div>';
+  const ri = raceInfo(S);
+  if (ri) {
+    if (ri.r.subs) {
+      h += '<h3>เลือกเผ่าย่อยของ' + ri.r.n + '</h3><div class="grid">';
+      Object.keys(ri.r.subs).forEach(k => { const sb = ri.r.subs[k]; h += '<button class="opt ' + (S.sub === k ? 'sel' : '') + '" data-a="sub" data-v="' + k + '"><b>' + sb.n + '</b><small>' + (sb.asi ? asiTxt(sb.asi) : '') + '</small></button>'; });
+      h += '</div>';
+    }
+    if (ri.r.dragon) {
+      h += '<h3>เลือกสายมังกร (Draconic Ancestry)</h3><p class="lead">กำหนดธาตุของลมหายใจและธาตุที่ต้านทาน</p><div class="grid">';
+      Object.keys(DRAGONS).forEach(k => { const d = DRAGONS[k]; h += '<button class="opt ' + (S.dragon === k ? 'sel' : '') + '" data-a="dragon" data-v="' + k + '"><b>' + d[0] + '</b><small>' + d[1] + ' · ' + d[2] + ' · save ' + d[3] + '</small></button>'; });
+      h += '</div>';
+    }
+    if (ri.r.halfElfPlus) {
+      h += '<h3>เลือกค่าพลังที่ได้ +1 เพิ่ม (เลือก 2 ค่า ยกเว้น CHA)</h3><div class="row">';
+      AB.filter(a => a !== 'CHA').forEach(a => { const on = S.hePlus.includes(a); h += '<button class="chip ' + (on ? 'on' : '') + '" data-a="hePlus" data-v="' + a + '">' + a + ' ' + AB_TH[a] + '</button>'; });
+      h += '</div>';
+    }
+    h += '<div class="info"><b>' + ri.name + '</b><br>ค่าพลังโบนัส: ' + asiTxt(ri.asi) + (ri.r.halfElfPlus ? ' (+ ที่เลือกเอง)' : '') + ' · ความเร็ว ' + ri.spd + ' ฟุต · ภาษา: ' + ri.lang.join(', ') + (ri.extraLang ? ' + เลือกเพิ่ม ' + ri.extraLang : '');
+    const feats = ri.r.feats.concat(ri.sub ? ri.sub.feats : []);
+    if (feats.length) h += '<ul>' + feats.map(f => '<li>' + esc(f) + '</li>').join('') + '</ul>';
+    if (ri.r.dragon && S.dragon) { const d = DRAGONS[S.dragon]; h += '<ul><li>Breath Weapon: ' + d[2] + ' ดาเมจ' + d[1] + ' 2d6 (save ' + d[3] + ')</li><li>ต้านทานดาเมจ' + d[1] + '</li></ul>'; }
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
+// ---------- step: class ----------
+function stepClass() {
+  let h = '<div class="card"><h2>เลือกอาชีพ</h2><p class="lead">อาชีพคือสิ่งที่ตัวละครทำเก่ง กำหนด HP ทอยป้องกัน ทักษะ และอุปกรณ์เริ่มต้น เรียงจากเล่นง่ายไปยาก (เป็นความเห็นของคู่มือนี้)</p><div class="grid">';
+  CLASS_ORDER.forEach(id => {
+    const c = CLASSES[id], cls = c.diff.startsWith('ง่าย') ? 'easy' : (c.diff.includes('ยาก') ? 'hard' : '');
+    h += '<button class="opt ' + (S.cls === id ? 'sel' : '') + '" data-a="cls" data-v="' + id + '"><b>' + c.n + ' <span class="tag ' + cls + '">' + c.diff + '</span></b><small>' + c.en + ' · ' + c.desc + '</small></button>';
+  });
+  h += '</div>';
+  const c = clsOf(S);
+  if (c) {
+    const armTh = {light:'เกราะเบา',medium:'เกราะกลาง',heavy:'เกราะหนัก',shield:'โล่'};
+    h += '<div class="info"><b>' + c.n + ' (' + c.en + ')</b><br>Hit Die d' + c.hd + ' · ทอยป้องกัน ' + c.saves.join(', ') + ' · ทักษะเลือก ' + c.nSk + ' อย่าง · เกราะ: ' + (c.armorP.length ? c.armorP.map(x => armTh[x]).join(', ') : 'ไม่มี') +
+      '<br>ค่าที่ควรเน้น: ' + c.order.slice(0, 3).join(' > ') + '<ul>' + c.feats.map(f => '<li>' + esc(f) + '</li>').join('') + '</ul></div>';
+    const sub = (title, map, key, act, extra) => {
+      h += '<h3>' + title + '</h3><div class="grid">';
+      Object.keys(map).forEach(k => { h += '<button class="opt ' + (S[key] === k ? 'sel' : '') + '" data-a="' + act + '" data-v="' + k + '"><b>' + map[k].n + '</b><small>' + esc(map[k].note || '') + '</small></button>'; });
+      h += '</div>';
+    };
+    if (c.domain) sub('เลือก Divine Domain (สายเทพ)', DOMAINS, 'domain', 'domain');
+    if (c.origin) sub('เลือก Sorcerous Origin (ต้นกำเนิดเวท)', ORIGINS, 'origin', 'origin');
+    if (c.patron) sub('เลือก Otherworldly Patron (ผู้ให้พลัง)', PATRONS, 'patron', 'patron');
+    if (c.style) sub('เลือก Fighting Style (สไตล์การรบ)', STYLES, 'style', 'style');
+  }
+  return h + '</div>';
+}
+
+// ---------- step: background ----------
+function stepBg() {
+  let h = '<div class="card"><h2>เลือกภูมิหลัง</h2><p class="lead">ภูมิหลังคือชีวิตก่อนผจญภัย ให้ทักษะ 2 อย่าง อุปกรณ์ เงิน และความสามารถทางสังคม</p><div class="grid">';
+  BG_ORDER.forEach(id => { const b = BGS[id]; h += '<button class="opt ' + (S.bg === id ? 'sel' : '') + '" data-a="bg" data-v="' + id + '"><b>' + b.th + '</b><small>' + b.n + ' · ' + b.skills.map(s => SK[s][0]).join(', ') + '</small></button>'; });
+  h += '</div>';
+  const b = bgOf(S);
+  if (b) {
+    const tools = (b.tools || []).concat(b.toolPick ? [TOOLS[b.toolPick].label + ' (เลือกเอง)'] : []);
+    h += '<div class="info"><b>' + b.n + ' · ' + b.th + '</b><br>ทักษะ: ' + b.skills.map(skName).join(', ') + (tools.length ? '<br>เครื่องมือ: ' + tools.join(', ') : '') + (b.lang ? '<br>ภาษาเพิ่ม: เลือก ' + b.lang : '') +
+      '<br>ความสามารถ: ' + esc(b.feature) + '<br>อุปกรณ์: ' + b.items.join(', ') + ' + เงิน ' + b.gp + ' gp</div>';
+  }
+  return h + '</div>';
+}
+// ---------- step: abilities ----------
+function stepAbil() {
+  const c = clsOf(S), ri = raceInfo(S);
+  let h = '<div class="card"><h2>จัดค่าความสามารถ 6 ค่า</h2><p class="lead">ค่ายิ่งสูงยิ่งเก่ง โบนัส (modifier) = (ค่า − 10) หารสอง ปัดลง เช่น 15 ได้ +2, 8 ได้ −1 ค่านี้คือสิ่งที่จะไปบวกในทอยเกือบทุกอย่าง</p>';
+  const M = [['array','Standard Array (ง่ายสุด)','ได้ชุดค่า 15, 14, 13, 12, 10, 8 เอาไปแจกให้ 6 ค่า'],['buy','Point Buy','มี 27 แต้ม ซื้อค่า 8-15 เอง'],['roll','ทอยลูกเต๋า 4d6','ทอย 4d6 ตัดตัวต่ำสุด 6 ครั้ง (ดวงขึ้นลงสูง)']];
+  h += '<div class="grid">' + M.map(m => '<button class="opt ' + (S.method === m[0] ? 'sel' : '') + '" data-a="method" data-v="' + m[0] + '"><b>' + m[1] + '</b><small>' + m[2] + '</small></button>').join('') + '</div>';
+  if (c) h += '<div class="info">อาชีพ <b>' + c.n + '</b> ควรให้ค่าสูงสุดกับ: <b>' + c.order.slice(0, 3).join(', ') + '</b> <button class="btn sm ghost" data-a="auto">จัดให้ตามอาชีพ</button></div>';
+  else h += '<div class="note">เลือกอาชีพก่อน จะมีปุ่ม "จัดให้ตามอาชีพ" ช่วยแจกค่าให้ (แต่แจกเองก็ได้)</div>';
+  if (S.method === 'roll') {
+    h += '<div class="row" style="margin:10px 0"><button class="btn" data-a="roll">🎲 ' + (S.pool.length ? 'ทอยใหม่ทั้งหมด' : 'ทอย 6 ครั้ง') + '</button>' + (S.pool.length ? '<span>ผลที่ได้: <b>' + S.pool.slice().sort((a, b) => b - a).join(', ') + '</b></span>' : '') + '</div>';
+  }
+  if (S.method === 'buy') h += '<p class="lead" style="margin-top:10px">แต้มที่ใช้ <b>' + buyTotal(S) + ' / 27</b> (เหลือ ' + (27 - buyTotal(S)) + ') · ค่าสูงสุด 15 ก่อนบวกโบนัสเผ่า · ราคา 9=1, 10=2, 11=3, 12=4, 13=5, 14=7, 15=9</p>';
+  const pool = poolValues(S), base = baseScores(S), fin = finalScores(S);
+  if (S.method === 'roll' && !pool.length) h += '<div class="note">กดทอยก่อน แล้วจึงแจกค่า</div>';
+  else {
+    h += '<div class="ab-grid" style="margin-top:10px">';
+    AB.forEach(a => {
+      const rec = c && c.order.slice(0, 2).includes(a);
+      h += '<div class="ab ' + (rec ? 'rec' : '') + '"><div class="h"><b>' + a + '</b><span>' + AB_TH[a] + '</span></div>';
+      if (S.method === 'buy') {
+        h += '<div class="pm"><button data-a="buy" data-k="' + a + '" data-v="-1" aria-label="ลด">−</button><span class="v">' + S.buy[a] + '</span><button data-a="buy" data-k="' + a + '" data-v="1" aria-label="เพิ่ม">+</button></div>';
+      } else {
+        const used = new Set(Object.keys(S.assign).filter(k => k !== a).map(k => S.assign[k]));
+        h += '<select data-a="assign" data-k="' + a + '"><option value="">— เลือก —</option>' + pool.map((v, i) => '<option value="' + i + '"' + (S.assign[a] === i ? ' selected' : '') + (used.has(i) ? ' disabled' : '') + '>' + v + '</option>').join('') + '</select>';
+      }
+      const racial = ri && ri.asi[a] ? ri.asi[a] : 0;
+      h += '<div class="m">' + (base[a] !== null ? (racial ? base[a] + ' + เผ่า ' + racial + ' = ' : '') : '') + '</div>';
+      h += '<div class="v">' + (fin[a] === null ? '–' : fin[a]) + ' <span class="m">(โบนัส ' + (fin[a] === null ? '–' : sg(mod(fin[a]))) + ')</span></div><div class="m">' + AB_HINT[a] + '</div></div>';
+    });
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+
+// ---------- step: skills / languages / tools ----------
+function stepSkill() {
+  if (!S.race || !S.cls || !S.bg) return '<div class="card"><h2>ทักษะ ภาษา เครื่องมือ</h2><div class="note">ต้องเลือกเผ่าพันธุ์ อาชีพ และภูมิหลังให้ครบก่อน (ขั้นที่ 1-3) เพราะทั้งสามอย่างให้ทักษะ</div></div>';
+  const fixed = fixedSkills(S), groups = skillGroups(S), taken = allSkillProf(S);
+  let h = '<div class="card"><h2>ทักษะ (Skills)</h2><p class="lead">ทักษะที่ "ชำนาญ" จะได้บวก +2 ในทอยทักษะนั้น ทักษะที่ได้ซ้ำจากสองแหล่ง ให้เลือกทักษะอื่นแทน (ปุ่มที่ซ้ำจึงเลือกไม่ได้)</p>';
+  h += '<h3>ที่ได้อัตโนมัติ</h3><div class="skills">' + fixed.map(id => '<div class="sk fix"><span>' + skName(id) + '</span><small>' + fixedSkillSource(S, id) + '</small></div>').join('') + '</div>';
+  groups.forEach(g => {
+    const sel = S.sk[g.key] || [];
+    h += '<h3>' + esc(g.label) + ' <span class="tag">' + sel.length + '/' + g.n + '</span></h3><div class="skills">';
+    g.list.forEach(id => {
+      const on = sel.includes(id), other = !on && taken.includes(id), full = !on && sel.length >= g.n;
+      h += '<button class="sk ' + (on ? 'sel' : '') + '" data-a="skill" data-k="' + g.key + '" data-v="' + id + '"' + ((other || full) ? ' disabled' : '') + '><span>' + skName(id) + '</span><small>' + SK[id][2] + (other ? ' · ซ้ำ' : '') + '</small></button>';
+    });
+    h += '</div>';
+  });
+  const c = clsOf(S);
+  if (c && c.expertise) {
+    const prof = allSkillProf(S);
+    h += '<h3>Expertise: เลือก ' + c.expertise + ' ทักษะที่จะได้ x2 โบนัสชำนาญ <span class="tag">' + S.exp.length + '/' + c.expertise + '</span></h3><div class="skills">';
+    prof.forEach(id => { const on = S.exp.includes(id); h += '<button class="sk ' + (on ? 'sel' : '') + '" data-a="exp" data-v="' + id + '"' + ((!on && S.exp.length >= c.expertise) ? ' disabled' : '') + '><span>' + skName(id) + '</span><small>+4</small></button>'; });
+    h += '</div>';
+    if (prof.length < 1) h += '<div class="note">เลือกทักษะด้านบนก่อน</div>';
+  }
+  h += '</div>';
+  const tn = toolNeeds(S);
+  const fixedT = (bgOf(S).tools || []).concat(c.fixedTools || []);
+  h += '<div class="card"><h2>เครื่องมือ (Tools)</h2>';
+  h += fixedT.length ? '<p class="lead">ได้อัตโนมัติ: <b>' + fixedT.join(', ') + '</b></p>' : '<p class="lead">ไม่มีเครื่องมือติดตัวอัตโนมัติ</p>';
+  tn.forEach(t => {
+    h += '<label class="f">' + esc(t.label) + '</label><select data-a="tool" data-k="' + t.key + '"><option value="">— เลือก —</option>' + t.list.map(x => '<option' + (S.tool[t.key] === x ? ' selected' : '') + '>' + esc(x) + '</option>').join('') + '</select>';
+  });
+  h += '</div>';
+  const fl = fixedLangs(S), need = langNeed(S);
+  h += '<div class="card"><h2>ภาษา (Languages)</h2><p class="lead">ได้อัตโนมัติ: <b>' + fl.join(', ') + '</b></p>';
+  if (need) {
+    h += '<h3>เลือกภาษาเพิ่ม <span class="tag">' + S.lang.length + '/' + need + '</span></h3><div class="skills">';
+    LANGS.filter(l => !fl.includes(l)).forEach(l => {
+      const on = S.lang.includes(l);
+      h += '<button class="sk ' + (on ? 'sel' : '') + '" data-a="lang" data-v="' + esc(l) + '"' + ((!on && S.lang.length >= need) ? ' disabled' : '') + '><span>' + l + '</span><small>' + (LANG_TH[l] || '') + '</small></button>';
+    });
+    h += '</div><p class="lead" style="margin-top:8px">ถามกับ GM ว่าภาษาลับหรือแปลกๆ (เช่น Abyssal, Deep Speech) ใช้ได้ในแคมเปญไหม</p>';
+  } else h += '<p class="lead">ไม่มีภาษาให้เลือกเพิ่ม</p>';
+  return h + '</div>';
+}
+
+// ---------- step: equipment ----------
+function stepEquip() {
+  const c = clsOf(S);
+  if (!c) return '<div class="card"><h2>อุปกรณ์เริ่มต้น</h2><div class="note">เลือกอาชีพก่อน (ขั้นที่ 2) อุปกรณ์เริ่มต้นขึ้นกับอาชีพ</div></div>';
+  let h = '<div class="card"><h2>อุปกรณ์เริ่มต้นของ' + c.n + '</h2><p class="lead">แต่ละกลุ่มให้เลือกหนึ่งอย่าง (ไม่ต้องซื้อ) · ส่วนที่ได้แน่ๆ แสดงไว้ท้ายกลุ่ม · ภูมิหลังจะเพิ่มของและเงินให้เอง</p>';
+  c.equip.forEach((g, gi) => {
+    h += '<div class="eq"><div class="t">' + esc(g.t) + '</div>';
+    if (g.fixed) {
+      h += '<div class="good" style="margin:0">ได้เลย: ' + g.fixed.map(it => {
+        if (it.pick) { return esc(itemLabel(it)) + pickSelect(gi, 0, g.fixed.indexOf(it), it); }
+        return esc(itemLabel(it));
+      }).join(' + ') + '</div>';
+    } else {
+      g.o.forEach((opt, oi) => {
+        const ok = optionAllowed(S, opt), sel = S.eq[gi] === oi;
+        h += '<button class="radio ' + (sel ? 'sel' : '') + '" data-a="eq" data-k="' + gi + '" data-v="' + oi + '"' + (ok ? '' : ' disabled') + '><span class="o"></span><span>' + opt.map(it => esc(itemLabel(it))).join(' + ') + (ok ? '' : '<br><small>' + optionWhyNot(S, opt) + '</small>') + '</span></button>';
+        if (sel) opt.forEach((it, ii) => { if (it.pick) h += '<div style="margin:0 0 8px 26px">' + pickSelect(gi, oi, ii, it) + '</div>'; });
+      });
+      if (g.note) h += '<small style="color:var(--ink2)">' + esc(g.note) + '</small>';
+    }
+    h += '</div>';
+  });
+  return h + '</div>';
+}
+function pickSelect(gi, oi, ii, it) {
+  const key = gi + '.' + oi + '.' + ii, cur = S.pickw[key] || '';
+  return ' <select data-a="pickw" data-k="' + key + '"><option value="">— เลือกอาวุธ —</option>' + PICKS[it.pick].list.map(id => '<option value="' + id + '"' + (cur === id ? ' selected' : '') + '>' + W[id][0] + ' (' + W[id][1] + ') ' + W[id][4] + ' ' + DT[W[id][5]] + '</option>').join('') + '</select>';
+}
+
+// ---------- step: info ----------
+function stepInfo() {
+  return '<div class="card"><h2>ชื่อและแนวทางศีลธรรม</h2><p class="lead">ขั้นสุดท้ายแล้ว! ตั้งชื่อและเลือกนิสัยคร่าวๆ ของตัวละคร เลเวลเริ่มต้นคือ 1 และโบนัสชำนาญ +2</p>' +
+    '<label class="f" for="nm">ชื่อตัวละคร</label><input type="text" id="nm" data-a="name" value="' + esc(S.name) + '" placeholder="เช่น ลิดดา, ธอริน..." autocomplete="off">' +
+    '<label class="f" for="al">แนวทางศีลธรรม (Alignment)</label><select id="al" data-a="align"><option value="">— เลือก —</option>' + ALIGN.map(a => '<option' + (S.align === a ? ' selected' : '') + '>' + a + '</option>').join('') + '</select>' +
+    '<div class="info">แกนแรก: ถูกต้อง = ทำดีตามกติกา/ความสงบ, เป็นกลาง, ชั่ว = เห็นแก่ตัว/ทำร้ายผู้อื่น · แกนหลัง: เป็นระเบียบ = เคารพกฎ, อิสระ = ทำตามใจ ไม่ต้องเป๊ะ ไม่มีถูกผิด เลือกตามที่อยากเล่น แล้วกด "ผลลัพธ์"</div></div>';
+}
+// ---------- result ----------
+function bx(key, label, value, why, cls) {
+  const done = UI.checks[key] ? ' done' : '';
+  return '<div class="box chk' + done + ' ' + (cls || '') + '" data-a="chk" data-v="' + key + '"><div class="l">' + label + '</div><div class="w">' + (value === '' || value == null ? '<span style="color:var(--ink2)">—</span>' : esc(value)) + '</div>' + (why ? '<div class="why">' + esc(why) + '</div>' : '') + '</div>';
+}
+const shortFeat = l => { const i = l.indexOf(':'); return (i > 0 && i < 48 ? l.slice(0, i) : l.slice(0, 40)); };
+
+function resultHtml() {
+  const R = compute(S); const stepIdx = id => STEPS.findIndex(s => s.id === id);
+  let h = '';
+  if (R.missing.length) h += '<div class="miss"><b>ยังไม่ครบ ' + R.missing.length + ' อย่าง</b> (ช่องที่ขาดจะว่างอยู่ด้านล่าง)<ul>' + R.missing.map(m => '<li>' + esc(m.msg) + ' — <a data-a="go" data-v="' + stepIdx(m.step) + '">ไปแก้</a></li>').join('') + '</ul></div>';
+  else h += '<div class="good"><b>ครบแล้ว!</b> เขียนตามช่องด้านล่างได้เลย แตะแต่ละช่องเพื่อติ๊กว่าเขียนแล้ว</div>';
+  h += '<div class="card sheet"><div class="row" style="justify-content:space-between"><h2>สิ่งที่ต้องเขียนลงในชีท</h2><label class="toggle"><input type="checkbox" data-a="why"' + (UI.why ? ' checked' : '') + '> แสดงวิธีคิด</label></div>';
+  h += '<div class="' + (UI.why ? '' : 'hide-why') + '">';
+  h += '<div class="sec">ส่วนหัวของชีท</div><div class="g2">' + bx('name', 'ชื่อ', R.name) + bx('race', 'เผ่าพันธุ์', R.raceName) + bx('cls', 'อาชีพ', R.className2) + bx('align', 'ศีลธรรม', R.align) + bx('lv', 'เลเวล', '1', 'ตัวละครใหม่เริ่มเลเวล 1') + bx('prof', 'ชำนาญ (โบนัส)', '+2', 'เลเวล 1-4 ได้ +2 เสมอ') + '</div>';
+  h += '<div class="sec">สเตตัสของฉัน</div><div class="g2">' + bx('hpmax', 'HP สูงสุด', R.hp, R.hpWhy) + bx('hpcur', 'HP ปัจจุบัน', R.hp, 'เริ่มเกมให้เท่า HP สูงสุด') + bx('ac', 'AC (ค่าเกราะ)', R.ac, R.acWhy) + bx('armor', 'เกราะที่สวมใส่', R.armorName, R.acNotes.join(' · ')) + bx('spd', 'ความเร็ว', R.speed != null ? R.speed + ' ฟุต' : '', R.speedWhy || '') + bx('init', 'อินนิเชียทีฟ', sg(R.init), 'เท่าโบนัส DEX') + '</div>';
+  h += '<div class="sec">ค่าความสามารถของฉัน</div><div class="g6">' + R.abilities.map(a =>
+    '<div class="box chk abbox' + (UI.checks['ab' + a.ab] ? ' done' : '') + '" data-a="chk" data-v="ab' + a.ab + '"><div class="nm">' + a.th + '</div><div class="small">โบนัส</div><div class="w">' + (a.score === null ? '—' : sg(a.mod)) + '</div><div class="small">ช่องเล็ก: <b>' + (a.score === null ? '—' : a.score) + '</b> (' + a.ab + ')</div>' +
+    '<div class="why">' + (a.base !== null ? 'ค่าพื้นฐาน ' + a.base + (a.racial ? ' + เผ่า ' + a.racial : '') : '') + '</div></div>').join('') + '</div>';
+  h += '<div class="sec">ทอยป้องกัน (Saving Throw)</div><div class="g6">' + R.abilities.map(a => bx('sv' + a.ab, a.th + ' (' + a.ab + ')', a.score === null ? '' : sg(a.save), a.saveProf ? 'โบนัส ' + sg(a.mod) + ' + ชำนาญ 2 → ติ๊กวงกลม' : 'ไม่ชำนาญ = เท่าโบนัสค่าพลัง', a.saveProf ? '' : '')).join('') + '</div>';
+  // combat
+  h += '<div class="sec">การต่อสู้</div><table class="t"><tr><th>ช่อง</th><th>ชื่อ</th><th>โจมตี (ทอย d20 แล้วบวก)</th><th>ความเสียหาย (ถ้าโจมตีโดน ทอย)</th></tr>';
+  const rows = R.weapons.slice(); const spellRow = R.spell ? {name:'คาถา (' + R.spell.ab + ')', atk:R.spell.atk, dmg:'ตามคาถา', why:'ชำนาญ 2 + ' + R.spell.ab + ' ' + sg(R.spell.m), notes:['ทอยโจมตีคาถา; ศัตรูทอยป้องกัน DC ' + R.spell.dc], spell:true} : null;
+  const labels = ['อาวุธ 1', 'อาวุธ 2', 'อาวุธ 3', 'อื่น ๆ', 'อื่น ๆ'];
+  const all = rows.concat(spellRow ? [spellRow] : []);
+  all.slice(0, 5).forEach((r, i) => {
+    h += '<tr><td>' + (r.spell ? 'อื่น ๆ' : labels[i]) + '</td><td><b>' + esc(r.name) + '</b>' + (r.th ? '<br><small>' + esc(r.th) + '</small>' : '') + '</td><td><b>' + sg(r.atk) + '</b><div class="why">' + esc(r.atkWhy || r.why || '') + '</div></td><td><b>' + esc(r.dmg) + '</b><div class="why">' + esc(r.dmWhy || '') + '</div></td></tr>' +
+      (r.notes && r.notes.length ? '<tr><td></td><td colspan="3"><small>' + r.notes.map(esc).join(' · ') + '</small></td></tr>' : '');
+  });
+  if (all.length > 5) h += '<tr><td colspan="4"><small>มีอาวุธเกิน 5 ช่อง: ' + all.slice(5).map(r => esc(r.name)).join(', ') + ' — เขียนต่อในช่องความสามารถพิเศษ/อุปกรณ์</small></td></tr>';
+  if (!all.length) h += '<tr><td colspan="4"><small>ยังไม่มีอาวุธ (เลือกอุปกรณ์ในขั้นที่ 6)</small></td></tr>';
+  h += '</table>';
+  if (R.spell) {
+    const sp = R.spell;
+    h += '<div class="info"><b>เวทมนตร์ (' + sp.list + ' · ใช้ ' + sp.ab + ')</b>: DC ทอยป้องกันคาถา = <b>' + sp.dc + '</b> (8 + 2 + ' + sp.ab + ' ' + sg(sp.m) + ') · โบนัสโจมตีด้วยคาถา = <b>' + sg(sp.atk) + '</b><br>Cantrip (ใช้ไม่จำกัด) ' + sp.cantrips + ' อย่าง · ช่องคาถาเลเวล 1: ' + sp.slots + ' ช่อง' + (sp.pact ? ' (ฟื้นเมื่อพักสั้น)' : '') +
+      (sp.known ? ' · คาถาเลเวล 1 ที่รู้ ' + sp.known + ' อย่าง' : '') + (sp.book ? ' · ในสมุดคาถา ' + sp.book + ' อย่าง และเตรียมใช้ ' + sp.prepared + ' อย่าง' : (sp.prepared ? ' · เตรียมคาถาได้ ' + sp.prepared + ' อย่าง/วัน' : '')) + '<br><small>เลือกคาถาจากลิสต์ ' + sp.list + ' ใน Player\'s Handbook แล้วเขียนไว้ในหน้าคาถาของชีท (ชีทหน้านี้ไม่มีช่องคาถา)</small></div>';
+  }
+  // features
+  h += '<div class="sec">ความสามารถพิเศษ</div><div class="box"><div class="l">เขียนชื่อสั้นๆ ลงช่องนี้ (รายละเอียดอ่านด้านล่าง)</div><div class="w" style="font-size:.95rem;font-weight:500">' +
+    R.features.map(f => '<b>' + esc(f.title) + '</b><ul style="margin:2px 0 6px;padding-left:18px">' + f.lines.map(l => '<li>' + esc(shortFeat(l)) + '</li>').join('') + '</ul>').join('') + '</div></div>';
+  h += '<div class="feat" style="margin-top:8px"><b>ความชำนาญ:</b> เกราะ — ' + esc(R.profArmor) + ' · อาวุธ — ' + esc(R.profWeapons) + (R.tools.length ? '<br><b>เครื่องมือ:</b> ' + R.tools.map(esc).join(', ') : '') + '</div>';
+  h += '<details><summary style="cursor:pointer;color:var(--accent)">อ่านรายละเอียดความสามารถทั้งหมด</summary>' + R.features.map(f => '<div class="feat"><b>' + esc(f.title) + '</b><ul>' + f.lines.map(l => '<li>' + esc(l) + '</li>').join('') + '</ul></div>').join('') + '</details>';
+  // skills
+  h += '<div class="sec">ทักษะของฉัน (ติ๊กวงกลมหน้าทักษะที่ชำนาญ แล้วเขียนโบนัส)</div><div class="skl">' + R.skills.map(s =>
+    '<div class="sr ' + (s.prof ? 'p' : '') + '"><span>' + (s.exp ? '◉◉ ' : s.prof ? '● ' : '○ ') + s.th + ' (' + s.ab + ')</span><span class="c">' + sg(s.bonus) + '</span></div>').join('') + '</div>';
+  h += '<div class="feat" style="margin-top:6px"><small>● = ชำนาญ (โบนัส ' + 'ค่าพลัง + 2) · ◉◉ = Expertise (ค่าพลัง + 4) · ○ = ไม่ชำนาญ (เท่าค่าพลังล้วน)</small></div>';
+  // equipment
+  h += '<div class="sec">อุปกรณ์ของฉัน</div><div class="box"><div class="w" style="font-size:.95rem;font-weight:500"><ul style="margin:0;padding-left:18px">' + R.equipment.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul></div></div>';
+  if (R.packs.length) h += '<details><summary style="cursor:pointer;color:var(--accent)">ในแพ็กมีอะไรบ้าง</summary>' + R.packs.map(p => '<div class="feat"><b>' + esc(p.name) + ' (' + esc(p.th) + ')</b>: ' + esc(p.contents) + '</div>').join('') + '</details>';
+  h += '<div class="sec">ภาษา</div>' + bx('lang', 'ภาษา', R.languages.join(', '), '');
+  if (R.notes.length) h += '<div class="note" style="margin-top:12px">' + R.notes.map(esc).join('<br>') + '</div>';
+  h += '</div></div>';
+  h += '<div class="card"><h2>เอาไปใช้ต่อ</h2><div class="row"><button class="btn" data-a="copy">📋 คัดลอกเป็นข้อความ</button><button class="btn ghost" data-a="reset">เริ่มตัวละครใหม่</button></div>' +
+    '<p class="lead" style="margin-top:8px">' + (UI.copied === 'ok' ? '✓ คัดลอกแล้ว' : UI.copied === 'fail' ? 'คัดลอกอัตโนมัติไม่ได้ ลองเลือกข้อความด้านล่างแล้วคัดลอกเอง' : 'ใช้ส่งให้ GM หรือเก็บไว้เป็นบันทึก') + '</p>' + (UI.copied === 'fail' ? '<div class="pre">' + esc(plainText(R)) + '</div>' : '') +
+    '<div class="note">⚠️ ค่าบนชีทนี้คำนวณตามกติกา PHB 2014 เลเวล 1 · เลือกคาถา, Favored Enemy/Natural Explorer ของ Ranger และรายละเอียดบุคลิกตัวละคร ให้เขียนเองเพิ่ม · ถ้ากติกาโต๊ะคุณต่างจากหนังสือ ให้ยึด GM</div></div>';
+  return h;
+}
+
+function plainText(R) {
+  const L = [];
+  L.push('ชื่อ: ' + R.name + ' | เผ่าพันธุ์: ' + R.raceName + ' | อาชีพ: ' + R.className2 + ' | ศีลธรรม: ' + R.align + ' | เลเวล 1 | โบนัสชำนาญ +2');
+  L.push('HP: ' + R.hp + ' | AC: ' + R.ac + ' (' + R.armorName + ') | ความเร็ว: ' + R.speed + ' ฟุต | อินนิเชียทีฟ: ' + sg(R.init));
+  L.push('ค่าความสามารถ (โบนัส / ค่า / ทอยป้องกัน): ' + R.abilities.map(a => a.ab + ' ' + sg(a.mod) + ' / ' + a.score + ' / ' + sg(a.save)).join(' ; '));
+  L.push('การต่อสู้:'); R.weapons.forEach(w => L.push('  - ' + w.name + ': โจมตี ' + sg(w.atk) + ', ดาเมจ ' + w.dmg));
+  if (R.spell) L.push('เวท: DC ' + R.spell.dc + ', โจมตี ' + sg(R.spell.atk) + ', cantrip ' + R.spell.cantrips + ', ช่องคาถา ' + R.spell.slots);
+  L.push('ทักษะที่ชำนาญ: ' + R.skills.filter(s => s.prof).map(s => s.th + ' ' + sg(s.bonus) + (s.exp ? '*' : '')).join(', '));
+  L.push('ทักษะอื่น: ' + R.skills.filter(s => !s.prof).map(s => s.th + ' ' + sg(s.bonus)).join(', '));
+  R.features.forEach(f => L.push(f.title + ': ' + f.lines.map(shortFeat).join(' / ')));
+  L.push('อุปกรณ์: ' + R.equipment.join(', '));
+  L.push('ภาษา: ' + R.languages.join(', ') + (R.tools.length ? ' | เครื่องมือ: ' + R.tools.join(', ') : ''));
+  return L.join('\n');
+}
+
+// ---------- render & events ----------
+function stepHtml() { return [stepRace, stepClass, stepBg, stepAbil, stepSkill, stepEquip, stepInfo, resultHtml][S.step](); }
+function nextBlocked() { return false; }
+function render(keepScroll) {
+  const app = document.getElementById('app');
+  const R = compute(S), last = S.step === STEPS.length - 1;
+  const stepId = STEPS[S.step].id, m = R.missing.filter(x => x.step === stepId);
+  app.innerHTML = '<header class="top"><h1>ตัวสร้างตัวละคร D&amp;D 5e</h1><p>ตอบทีละขั้น แล้วระบบจะบอกว่าต้องเขียนอะไรลงในช่องไหนของชีทภาษาไทย</p></header><div class="chips" id="chips">' + chipsHtml() + '</div>' + stepHtml() +
+    '<nav class="bottom"><div class="in"><button class="btn ghost" data-a="prev"' + (S.step === 0 ? ' disabled' : '') + '>← ย้อนกลับ</button><div class="hint">' + (last ? '' : (m.length ? 'ยังขาด: ' + esc(m[0].msg) : '')) + '</div>' +
+    (last ? '<span></span>' : '<button class="btn" data-a="next">' + (S.step === STEPS.length - 2 ? 'ดูผลลัพธ์ →' : 'ถัดไป →') + '</button>') + '</div></nav>';
+  if (!keepScroll) window.scrollTo(0, 0);
+  const on = document.querySelector('.chip.on'); if (on && on.scrollIntoView) { try { on.scrollIntoView({inline:'center', block:'nearest'}); } catch (e) {} }
+  save();
+}
+function refreshChips() { const c = document.getElementById('chips'); if (c) c.innerHTML = chipsHtml(); save(); }
+
+function handle(a, v, k, el) {
+  switch (a) {
+    case 'go': S.step = +v; return render();
+    case 'prev': S.step = Math.max(0, S.step - 1); return render();
+    case 'next': S.step = Math.min(STEPS.length - 1, S.step + 1); return render();
+    case 'race': S.race = v; S.sub = ''; S.dragon = ''; S.hePlus = []; sanitize(S); return render(true);
+    case 'sub': S.sub = v; sanitize(S); return render(true);
+    case 'dragon': S.dragon = v; return render(true);
+    case 'hePlus': { const i = S.hePlus.indexOf(v); if (i >= 0) S.hePlus.splice(i, 1); else if (S.hePlus.length < 2) S.hePlus.push(v); return render(true); }
+    case 'cls': S.cls = v; sanitize(S); S.eq = {}; S.pickw = {}; S.sk = {}; S.exp = []; sanitize(S); return render(true);
+    case 'domain': case 'origin': case 'patron': case 'style': S[a] = v; sanitize(S); return render(true);
+    case 'bg': S.bg = v; sanitize(S); return render(true);
+    case 'method': if (S.method !== v) { S.method = v; S.assign = {}; S.pool = []; S.buy = {STR:8,DEX:8,CON:8,INT:8,WIS:8,CHA:8}; } return render(true);
+    case 'roll': S.pool = [1,2,3,4,5,6].map(roll4d6); S.assign = {}; return render(true);
+    case 'auto': autoAssign(S); return render(true);
+    case 'buy': { const n = S.buy[k] + (+v); if (n >= 8 && n <= 15 && (+v < 0 || buyTotal(S) - POINT_COST[S.buy[k]] + POINT_COST[n] <= 27)) S.buy[k] = n; return render(true); }
+    case 'skill': { const arr = S.sk[k] || (S.sk[k] = []); const i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); sanitize(S); return render(true); }
+    case 'exp': { const i = S.exp.indexOf(v); if (i >= 0) S.exp.splice(i, 1); else S.exp.push(v); sanitize(S); return render(true); }
+    case 'lang': { const i = S.lang.indexOf(v); if (i >= 0) S.lang.splice(i, 1); else S.lang.push(v); sanitize(S); return render(true); }
+    case 'eq': S.eq[k] = +v; sanitize(S); return render(true);
+    case 'chk': UI.checks[v] = !UI.checks[v]; el.classList.toggle('done', !!UI.checks[v]); return;
+    case 'why': UI.why = el.checked; return render(true);
+    case 'copy': return copyText();
+    case 'reset': if (UI.confirmReset) { S = newState(); UI.checks = {}; UI.confirmReset = false; return render(); } UI.confirmReset = true; el.textContent = 'กดอีกครั้งเพื่อยืนยันล้างทั้งหมด'; return;
+  }
+}
+function copyText() {
+  const txt = plainText(compute(S));
+  const done = ok => { UI.copied = ok ? 'ok' : 'fail'; render(true); };
+  try { navigator.clipboard.writeText(txt).then(() => done(true), () => done(false)); } catch (e) { done(false); }
+}
+
+function boot() {
+  load();
+  const app = document.getElementById('app');
+  app.addEventListener('click', e => {
+    const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
+    const a = el.dataset.a;
+    if (['assign', 'tool', 'pickw', 'align', 'name'].includes(a) || a === 'why') return; // handled by change/input
+    e.stopPropagation(); handle(a, el.dataset.v, el.dataset.k, el);
+  });
+  app.addEventListener('change', e => {
+    const el = e.target.closest('[data-a]'); if (!el) return; const a = el.dataset.a;
+    if (a === 'why') return handle('why', null, null, el);
+    if (a === 'assign') { if (el.value === '') delete S.assign[el.dataset.k]; else S.assign[el.dataset.k] = +el.value; render(true); }
+    else if (a === 'tool') { S.tool[el.dataset.k] = el.value; sanitize(S); render(true); }
+    else if (a === 'pickw') { S.pickw[el.dataset.k] = el.value; sanitize(S); render(true); }
+    else if (a === 'align') { S.align = el.value; refreshChips(); }
+    else if (a === 'name') { S.name = el.value; refreshChips(); }
+  });
+  app.addEventListener('input', e => { const el = e.target; if (el.dataset && el.dataset.a === 'name') { S.name = el.value; refreshChips(); } });
+  render(true);
+  try { if (window.hot && hot.ready) hot.ready(); } catch (e) {}
+}
+if (typeof document !== 'undefined') { if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot(); }
+</script></body></html>
